@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mindclub</title>
+<meta name="description" content="Log your daily puzzles, follow friends and challenge them to beat your score.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css?v=14">
+</head>
+<body>
+
+<!-- ============ SIGNED OUT ============ -->
+<div class="authwrap" id="authScreen" hidden>
+  <section class="hero">
+    <h1>mind<span>club</span></h1>
+    <p>Log your daily puzzles and compare with friends. Scores stay hidden until you've played.</p>
+    <div class="points">
+      <div><b>Paste to log</b><span>Tap Share in Wordle, Connections, Queens and others, then paste here.</span></div>
+      <div><b>No spoilers</b><span>You see a friend's score after you've logged the same game.</span></div>
+      <div><b>Follow and challenge</b><span>Follow friends by their @handle and challenge your followers to beat your score.</span></div>
+    </div>
+  </section>
+  <section class="form">
+    <div class="authcard">
+      <div id="authAsk">
+        <div class="joinbadge" id="joinBadge" hidden>Sign in to follow the person who sent you this link.</div>
+        <h2>Sign in or sign up</h2>
+        <div class="muted">Enter your email. We'll send you a link that signs you in. There's no password, and new accounts are created automatically.</div>
+        <form id="authForm">
+          <input class="field" id="authEmail" type="email" required placeholder="you@example.com" autocomplete="email">
+          <button class="btn primary" id="authBtn" type="submit">Email me a sign-in link</button>
+        </form>
+        <div class="notice err" id="authNotice" hidden></div>
+      </div>
+
+      <div id="authSent" hidden>
+        <h2>Check your email</h2>
+        <div class="muted">We sent a sign-in link to <b id="sentTo"></b>.</div>
+        <ol class="steps">
+          <li>Open the email from Supabase Auth. It can take a minute, and may land in spam.</li>
+          <li>Click the link <b>in this same browser</b>. If your email opens it somewhere else, copy the link and paste it into this browser's address bar.</li>
+          <li>You'll land back here, signed in. This tab also updates by itself once you're in.</li>
+        </ol>
+        <button class="btn ghost" data-act="authback" style="width:auto">Use a different email</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ============ SIGNED IN ============ -->
+<div class="shell" id="appScreen" hidden>
+  <aside class="side">
+    <div class="logo">mind<span>club</span></div>
+    <nav class="nav" id="nav">
+      <button data-view="today" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>Today</button>
+      <button data-view="challenges"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 17.5 3 6V3h3l11.5 11.5M13 19l6-6M16 16l4 4M19 21l2-2M9.5 17.5 21 6V3h-3L6.5 14.5M11 19l-6-6M8 16l-4 4M5 21l-2-2"/></svg>Challenges<span class="badge" id="chBadge" hidden></span></button>
+      <button data-view="people"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="4"/><path d="M2 21c0-4 3-7 7-7s7 3 7 7M16 4a4 4 0 0 1 0 8M22 21c0-3-1.5-5.5-4-6.5"/></svg>People</button>
+      <button data-view="games"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><path d="M17.5 14v7M14 17.5h7"/></svg>Games</button>
+      <button data-view="history"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg>My history</button>
+    </nav>
+    <div class="foot">
+      <div class="me-row" style="padding:0;margin-bottom:12px">
+        <div class="av" id="meAv"></div>
+        <div><div class="name" id="meName"></div><div class="handle" id="meHandle"></div><button data-act="rename">Edit profile</button> · <button data-act="signout">Sign out</button></div>
+      </div>
+      <div class="hints"><kbd>⌘</kbd> <kbd>V</kbd> anywhere to log a result.<br>
+      <kbd>L</kbd> opens the log box.</div>
+    </div>
+  </aside>
+
+  <main>
+    <div class="dropzone loaderr" id="loadErr" hidden>
+      <div><b>Couldn't load your data</b><div class="muted">Check your connection, then try again.</div></div>
+      <button class="btn primary" data-act="retry">Try again</button>
+    </div>
+    <section class="view on" id="view-today">
+      <div class="top">
+        <div>
+          <h1 id="hello">Today</h1>
+          <div class="sub" id="todaySub"></div>
+        </div>
+        <button class="btn primary" data-act="log">+ Log a result</button>
+      </div>
+
+      <div class="panel welcome" id="welcome" hidden>
+        <h2>Welcome to Mindclub</h2>
+        <div class="muted">Two steps to get set up.</div>
+        <div class="wstep" id="wName">
+          <div class="wnum">1</div>
+          <div class="wbody">
+            <b>Your name and handle</b>
+            <div class="muted">Your handle is how friends find you, like @sam_k.</div>
+            <form class="wrow" id="nameForm">
+              <input class="field" id="nameInput" maxlength="40" required placeholder="Your first name" aria-label="Name">
+              <input class="field" id="handleInput" maxlength="21" required placeholder="handle" aria-label="Handle">
+              <button class="btn dark" type="submit">Save</button>
+            </form>
+            <div class="notice err" id="nameErr" hidden></div>
+          </div>
+        </div>
+        <div class="wstep">
+          <div class="wnum">2</div>
+          <div class="wbody">
+            <b>Follow your friends</b>
+            <div class="muted">Send them your link, or find them by handle. You see results from people you follow, and you can challenge people who follow you.</div>
+            <div class="wrow">
+              <button class="btn primary" data-act="copylink">Copy my link</button>
+              <button class="btn ghost" data-view="people">Find people</button>
+            </div>
+          </div>
+        </div>
+        <div class="muted" style="margin-top:14px">You can also log games on your own below while you wait for friends.</div>
+      </div>
+
+      <div class="dropzone back" id="backBanner">
+        <div><b id="backTitle">Back from Wordle?</b><div class="muted" id="backHint">Tap Share in the game, then press ⌘V here.</div></div>
+        <button class="btn primary" data-act="backplayed">I played, no score</button>
+      </div>
+
+      <div class="dropzone" id="dropzone">
+        <div><b>Paste or drop a game's share text</b><div class="muted" id="dropGames">Works with every game on the Games page.</div></div>
+        <button class="btn ghost" data-act="pasteclip">Paste</button>
+      </div>
+
+      <div class="grid" id="games"></div>
+      <div class="gridfoot" id="gridFoot"></div>
+    </section>
+
+    <section class="view" id="view-challenges">
+      <div class="top">
+        <div><h1>Challenges</h1><div class="sub">Challenge people who follow you to beat you at today's puzzle.</div></div>
+        <button class="btn primary" data-act="challenge">+ New challenge</button>
+      </div>
+      <div class="panel"><h3>Waiting on you <small id="chInCount"></small></h3><div class="chlist" id="chIn"></div></div>
+      <div class="panel"><h3>Waiting on them <small id="chOutCount"></small></h3><div class="chlist" id="chOut"></div></div>
+      <div class="panel"><h3>Finished <small>last 2 weeks</small></h3><div class="chlist" id="chDone"></div></div>
+    </section>
+
+    <section class="view" id="view-people">
+      <div class="top"><div><h1>People</h1><div class="sub">Follow friends to see their results. People who follow you can be challenged.</div></div></div>
+      <div class="panel">
+        <h3>Find someone</h3>
+        <form class="suggestform" id="findForm" autocomplete="off">
+          <input class="field" id="findInput" maxlength="21" placeholder="Their handle, like sam_k" aria-label="Handle to search">
+        </form>
+        <div class="plist" id="findList"></div>
+      </div>
+      <div class="panel">
+        <h3>Your link</h3>
+        <div class="nofriends" style="margin-bottom:10px">Anyone who opens this link can follow you in one click.</div>
+        <div class="invite"><code class="profileLink"></code><button class="btn dark" data-act="copylink">Copy</button></div>
+      </div>
+      <div class="tabs" role="tablist">
+        <button class="tab on" data-ptab="following" role="tab">Following <span id="followingN"></span></button>
+        <button class="tab" data-ptab="followers" role="tab">Followers <span id="followersN"></span></button>
+      </div>
+      <div class="panel"><div class="plist" id="peopleList"></div></div>
+    </section>
+
+    <section class="view" id="view-games">
+      <div class="top"><div><h1>Games</h1><div class="sub">Pick the games you play, and suggest ones Mindclub should add.</div></div></div>
+      <div class="panel">
+        <h3>Show on Today <small id="pickCount"></small></h3>
+        <div class="picker" id="picker"></div>
+        <div class="muted" style="margin-top:12px">Hidden games still show on Today on days you log them, and friends still see your results.</div>
+      </div>
+      <div class="panel">
+        <h3>Suggest a game</h3>
+        <div class="muted">Is there a daily game you want to log here? Suggest it, or vote for someone else's idea. The most-wanted ones get added first.</div>
+        <form class="suggestform" id="suggestForm">
+          <input class="field" id="sugName" maxlength="40" required placeholder="Game name, like Spelling Bee">
+          <input class="field" id="sugUrl" maxlength="200" placeholder="Link (optional)">
+          <button class="btn primary" type="submit">Suggest</button>
+        </form>
+        <div class="notice err" id="sugErr" hidden></div>
+        <div class="suggestions" id="suggestions"></div>
+      </div>
+    </section>
+
+    <section class="view" id="view-history">
+      <div class="top"><div><h1>My history</h1><div class="sub">Every result you've logged.</div></div></div>
+      <div class="panel">
+        <h3>Last 20 weeks <small id="heatTotal"></small></h3>
+        <div class="heat" id="heat"></div>
+      </div>
+      <div class="stats" id="stats"></div>
+      <div class="panel"><table><thead><tr><th>Date</th><th>Game</th><th>Result</th><th>Fun</th><th></th></tr></thead><tbody id="histRows"></tbody></table></div>
+    </section>
+  </main>
+
+  <aside class="rail">
+    <div class="panel">
+      <h3>Your streak</h3>
+      <div class="streakbig"><span class="n serif" id="streakN">0</span><span class="muted" id="streakLbl">days</span></div>
+      <div class="week" id="week"></div>
+    </div>
+    <div class="panel" id="chPanel" hidden>
+      <h3>Challenges <small id="chPanelN"></small></h3>
+      <div class="chlist compact" id="chRail"></div>
+    </div>
+    <div class="panel" id="invitePanel">
+      <h3>Your link <small id="followCount"></small></h3>
+      <div class="nofriends" style="margin-bottom:10px">Send it to friends so they can follow you.</div>
+      <div class="invite"><code class="profileLink"></code><button class="btn dark" data-act="copylink">Copy</button></div>
+    </div>
+    <div class="panel" id="lbPanel">
+      <h3><span>This week</span><small>games played</small></h3>
+      <div class="lb" id="lb"></div>
+    </div>
+    <div class="panel" id="feedPanel">
+      <h3>Following <small>today</small></h3>
+      <div class="feed" id="feed"></div>
+    </div>
+    <div class="panel how" id="howPanel"></div>
+  </aside>
+</div>
+
+<!-- log modal -->
+<div class="modal-bg" id="modalBg">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+    <h2 id="mTitle">Log a result</h2>
+    <div class="muted">Paste the text the game's Share button copied.</div>
+    <textarea id="paste" placeholder="Wordle 1,606 3/6&#10;&#10;⬛🟨⬛⬛⬛&#10;🟩🟩🟩🟩🟩"></textarea>
+    <div class="samples">Examples: <span id="samples" style="display:contents"></span></div>
+    <div class="detect" id="detect">Paste a result above.</div>
+    <div class="muted" style="margin-top:16px">How fun was it? <span style="opacity:.7">(optional)</span></div>
+    <div class="stars" id="stars"></div>
+    <div class="mfoot">
+      <button class="btn ghost" data-act="closemodal">Cancel</button>
+      <button class="btn primary" id="save" disabled>Save result</button>
+    </div>
+  </div>
+</div>
+
+<!-- small text prompt (edit profile) -->
+<div class="modal-bg" id="askBg">
+  <form class="modal" id="askForm" role="dialog" aria-modal="true" aria-labelledby="askTitle">
+    <h2 id="askTitle"></h2>
+    <div class="muted" id="askDesc"></div>
+    <input class="field" id="askInput" required maxlength="60">
+    <label class="flabel" for="askInput2" id="askLabel2" hidden>Handle</label>
+    <input class="field" id="askInput2" maxlength="21" hidden>
+    <div class="notice err" id="askErr" hidden></div>
+    <div class="mfoot" style="margin-top:8px">
+      <button class="btn ghost" type="button" data-act="closeask">Cancel</button>
+      <button class="btn primary" id="askBtn" type="submit"></button>
+    </div>
+  </form>
+</div>
+
+<!-- new challenge -->
+<div class="modal-bg" id="chBg">
+  <form class="modal" id="chForm" role="dialog" aria-modal="true" aria-labelledby="chTitle">
+    <h2 id="chTitle">New challenge</h2>
+    <div class="muted">Pick a game and who to challenge. They'll see it on Mindclub, and whoever scores better on today's puzzle wins.</div>
+    <label class="flabel" for="chGame">Game</label>
+    <select class="field" id="chGame"></select>
+    <label class="flabel">Challenge <button type="button" class="linkbtn inline" id="chAll">Select all</button></label>
+    <div class="chpick" id="chWho"></div>
+    <input class="field" id="chNote" maxlength="80" placeholder="Add a message (optional)">
+    <div class="notice err" id="chErr" hidden></div>
+    <div class="mfoot" style="margin-top:8px">
+      <button class="btn ghost" type="button" data-act="closech">Cancel</button>
+      <button class="btn primary" id="chSend" type="submit">Send challenge</button>
+    </div>
+  </form>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="config.js?v=13"></script>
+<script src="parser.js?v=13"></script>
+<script src="app.js?v=13"></script>
+</body>
+</html>
