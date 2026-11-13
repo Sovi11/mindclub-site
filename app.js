@@ -45,6 +45,37 @@ const autoHandle = h => /^player\d*$/.test(h || "");
 const profileUrl = () => `${location.origin}${location.pathname}?u=${S.profile?.handle || ""}`;
 
 /* ================= auth ================= */
+const isGuest = () => !!S.user?.is_anonymous;
+const isUnnamed = () => S.profile.display_name === (S.user.email || "").split("@")[0] || (isGuest() && S.profile.display_name === "Guest");
+
+// Guests are real (anonymous) accounts, so follows and challenges work the same.
+async function signInGuest(){
+  $("guestBtn").disabled = true;
+  const { error } = await sb.auth.signInAnonymously();
+  $("guestBtn").disabled = false;
+  if(error){
+    $("authNotice").hidden = false;
+    $("authNotice").textContent = /disabled/i.test(error.message) ? "Guest sign-in is turned off right now. Use your email instead."
+      : /rate|many/i.test(error.message) ? "Too many guest sign-ins from this network. Try again later, or use your email."
+      : error.message;
+  }
+}
+// Turning a guest into a normal account: Supabase emails a link; once it's clicked, the guest keeps everything.
+$("keepForm").onsubmit = async e => {
+  e.preventDefault();
+  const email = $("keepEmail").value.trim(), btn = e.submitter || $("keepForm").querySelector("button");
+  btn.disabled = true;
+  const { error } = await sb.auth.updateUser({ email }, { emailRedirectTo: location.origin + location.pathname });
+  btn.disabled = false;
+  $("keepErr").hidden = !error;
+  if(error){
+    $("keepErr").textContent = /already|registered|exists/i.test(error.message)
+      ? "That email already has a Mindclub account. Sign out and sign in with it instead." : error.message;
+    return;
+  }
+  $("keepForm").hidden = true;
+  $("guestHint").textContent = `We sent a link to ${email}. Click it in this browser and your guest account becomes a normal one, with everything kept.`;
+};
 // A profile link (?u=handle) is remembered across the email sign-in round trip.
 const urlFollow = new URLSearchParams(location.search).get("u");
 if(urlFollow){ local.set("mc-follow", cleanHandle(urlFollow)); history.replaceState(null, "", location.pathname); }
@@ -84,7 +115,7 @@ if(hashErr){
 
 sb.auth.onAuthStateChange((_event, session) => {
   const u = session?.user || null;
-  if(u?.id === S.user?.id) return;
+  if(u && u.id === S.user?.id){ S.user = u; if(S.profile) render(); return; }   // same person, e.g. a guest who just added their email
   S.user = u;
   // Defer: calling Supabase inside this callback can deadlock the auth client.
   setTimeout(() => u ? boot() : showAuth(), 0);
@@ -169,7 +200,8 @@ function render(){
   if(!S.user || !S.profile) return;
   const now = new Date(), h = now.getHours();
   const first = S.profile.display_name.split(" ")[0];
-  const unnamed = S.profile.display_name === (S.user.email || "").split("@")[0];
+  const unnamed = isUnnamed();
+  $("guestBar").hidden = !isGuest();
   $("hello").textContent = `${h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening"}${unnamed ? "" : ", " + first}`;
   const shown = shownGames();
   const onToday = GAMES.filter(g => shown.includes(g) || todays(g.id));
@@ -697,7 +729,9 @@ document.addEventListener("click", async e => {
     case "extoff": disconnectExtension(); break;
     case "autooff": local.set("mc-auto", false); render(); toast("Auto-log is off"); break;
     case "authback": $("authSent").hidden = true; $("authAsk").hidden = false; $("authEmail").focus(); break;
+    case "guest": signInGuest(); break;
     case "signout":
+      if(isGuest() && !confirm("Sign out of this guest account? Guest accounts can't be signed back into, so your results and followers will be lost. To keep them, add your email first.")) break;
       // Otherwise the extension would keep logging into this account after you sign out.
       if(extState() === "connected") await disconnectExtension(true);
       await sb.auth.signOut();

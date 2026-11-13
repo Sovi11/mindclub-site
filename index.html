@@ -5,9 +5,18 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Mindclub</title>
 <meta name="description" content="Log your daily puzzles, follow friends and challenge them to beat your score.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Mindclub">
+<meta property="og:title" content="Mindclub: your daily puzzles, with friends">
+<meta property="og:description" content="Log your Wordle, Connections, Strands, Queens and more. Follow friends, compare scores without spoilers, and challenge them to beat you.">
+<meta property="og:url" content="https://sovi11.github.io/mindclub-site/">
+<meta property="og:image" content="https://sovi11.github.io/mindclub-site/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=14">
+<link rel="stylesheet" href="styles.css?v=15">
 </head>
 <body>
 
@@ -32,6 +41,9 @@
           <input class="field" id="authEmail" type="email" required placeholder="you@example.com" autocomplete="email">
           <button class="btn primary" id="authBtn" type="submit">Email me a sign-in link</button>
         </form>
+        <div class="or"><span>or</span></div>
+        <button class="btn ghost guestbtn" id="guestBtn" data-act="guest" type="button">Try it as a guest</button>
+        <div class="muted small">No email needed. Add your email later if you want to keep your account.</div>
         <div class="notice err" id="authNotice" hidden></div>
       </div>
 
@@ -82,6 +94,16 @@
           <div class="sub" id="todaySub"></div>
         </div>
         <button class="btn primary" data-act="log">+ Log a result</button>
+      </div>
+
+      <div class="panel guestbar" id="guestBar" hidden>
+        <div class="gtext"><b>You're using a guest account</b>
+          <div class="muted" id="guestHint">It only lives in this browser. Add your email to keep your results and followers, and to sign in on other devices.</div></div>
+        <form class="wrow" id="keepForm">
+          <input class="field" id="keepEmail" type="email" required placeholder="you@example.com" autocomplete="email" aria-label="Email">
+          <button class="btn dark" type="submit">Keep my account</button>
+        </form>
+        <div class="notice err" id="keepErr" hidden></div>
       </div>
 
       <div class="panel welcome" id="welcome" hidden>
@@ -271,8 +293,8 @@
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script src="config.js?v=13"></script>
-<script src="parser.js?v=13"></script>
-<script src="app.js?v=13"></script>
+<script src="config.js?v=15"></script>
+<script src="parser.js?v=15"></script>
+<script src="app.js?v=15"></script>
 </body>
 </html>

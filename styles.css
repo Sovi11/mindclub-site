@@ -312,3 +312,14 @@ select.field{appearance:auto}
 .chlist.compact .ch{flex-wrap:wrap;row-gap:6px}
 .chlist.compact .ch .what{flex:1 1 calc(100% - 40px)}
 .chlist.compact .ch .acts{width:100%;padding-left:36px}
+
+/* guest */
+.or{display:flex;align-items:center;gap:12px;margin:18px 0 12px;color:var(--muted);font-size:13px}
+.or::before,.or::after{content:"";flex:1;height:1px;background:var(--line)}
+.authcard .guestbtn{color:var(--ink)}
+.muted.small{font-size:13px;margin-top:8px}
+.guestbar{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;margin-bottom:20px;border-color:var(--accent);background:var(--accent-soft)}
+.guestbar .gtext{flex:1 1 300px}
+.guestbar .muted{font-size:13.5px;color:var(--muted)}
+.guestbar .wrow{margin-top:0}
+.guestbar .notice{flex-basis:100%;margin-top:0}
