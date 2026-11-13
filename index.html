@@ -16,7 +16,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=15">
+<link rel="stylesheet" href="styles.css?v=18">
 </head>
 <body>
 
@@ -24,26 +24,39 @@
 <div class="authwrap" id="authScreen" hidden>
   <section class="hero">
     <h1>mind<span>club</span></h1>
-    <p>Log your daily puzzles and compare with friends. Scores stay hidden until you've played.</p>
-    <div class="points">
-      <div><b>Paste to log</b><span>Tap Share in Wordle, Connections, Queens and others, then paste here.</span></div>
-      <div><b>No spoilers</b><span>You see a friend's score after you've logged the same game.</span></div>
-      <div><b>Follow and challenge</b><span>Follow friends by their @handle and challenge your followers to beat your score.</span></div>
+    <p class="tagline">Your daily puzzles, with friends. Log Wordle, Connections, Strands, Queens and more in one place, see how your friends did, and challenge them to beat you.</p>
+    <div class="cta">
+      <button class="btn primary big" id="guestBtn" data-act="guest" type="button">Try it now</button>
+      <a class="btn ghost big" href="#signin" data-act="toemail">Sign in with email</a>
     </div>
+    <div class="ctanote">No sign-up needed to try it. Free, no ads.</div>
+    <div class="notice err" id="guestNotice" hidden></div>
+
+    <div class="democard" aria-hidden="true">
+      <div class="dhead"><div class="gicon" style="background:#6aaa64">W</div><div><div class="gname">Wordle</div><div class="gsub">NYT · 2 of 3 you follow played</div></div><span class="mine">4/6</span></div>
+      <div class="drow best"><span class="rank">1</span><div class="av" style="background:#3e8fb0">M</div>Maya<span class="res">3/6</span></div>
+      <div class="drow me"><span class="rank">2</span><div class="av" style="background:var(--ink);color:var(--bg)">Y</div>You<span class="res">4/6</span></div>
+      <div class="drow"><span class="rank">3</span><div class="av" style="background:#8a5cc2">S</div>Sam<span class="res">5/6</span></div>
+      <div class="dch">Maya challenged you and won, 3/6 vs 4/6</div>
+    </div>
+
+    <div class="points">
+      <div><b>Log in seconds</b><span>Tap Share in the game, then Paste here. Or install the Chrome extension and it logs itself.</span></div>
+      <div><b>No spoilers</b><span>Friends' scores stay hidden until you've played the same puzzle.</span></div>
+      <div><b>Follow and challenge</b><span>Follow friends by @handle and challenge your followers to beat your score.</span></div>
+    </div>
+    <div class="gamechips" id="gameChips"></div>
   </section>
-  <section class="form">
+  <section class="form" id="signin">
     <div class="authcard">
       <div id="authAsk">
         <div class="joinbadge" id="joinBadge" hidden>Sign in to follow the person who sent you this link.</div>
-        <h2>Sign in or sign up</h2>
-        <div class="muted">Enter your email. We'll send you a link that signs you in. There's no password, and new accounts are created automatically.</div>
+        <h2>Sign in with email</h2>
+        <div class="muted">Keeps your scores and followers on every device. We'll email you a link that signs you in. There's no password, and new accounts are created automatically.</div>
         <form id="authForm">
           <input class="field" id="authEmail" type="email" required placeholder="you@example.com" autocomplete="email">
           <button class="btn primary" id="authBtn" type="submit">Email me a sign-in link</button>
         </form>
-        <div class="or"><span>or</span></div>
-        <button class="btn ghost guestbtn" id="guestBtn" data-act="guest" type="button">Try it as a guest</button>
-        <div class="muted small">No email needed. Add your email later if you want to keep your account.</div>
         <div class="notice err" id="authNotice" hidden></div>
       </div>
 
@@ -77,7 +90,7 @@
         <div class="av" id="meAv"></div>
         <div><div class="name" id="meName"></div><div class="handle" id="meHandle"></div><button data-act="rename">Edit profile</button> · <button data-act="signout">Sign out</button></div>
       </div>
-      <div class="hints"><kbd>⌘</kbd> <kbd>V</kbd> anywhere to log a result.<br>
+      <div class="hints"><kbd id="keyHint">⌘V</kbd> anywhere to log a result.<br>
       <kbd>L</kbd> opens the log box.</div>
     </div>
   </aside>
@@ -137,7 +150,7 @@
       </div>
 
       <div class="dropzone back" id="backBanner">
-        <div><b id="backTitle">Back from Wordle?</b><div class="muted" id="backHint">Tap Share in the game, then press ⌘V here.</div></div>
+        <div><b id="backTitle">Back from Wordle?</b><div class="muted" id="backHint">Tap Share in the game, then paste here.</div></div>
         <button class="btn primary" data-act="backplayed">I played, no score</button>
       </div>
 
@@ -293,8 +306,8 @@
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script src="config.js?v=15"></script>
-<script src="parser.js?v=15"></script>
-<script src="app.js?v=15"></script>
+<script src="config.js?v=18"></script>
+<script src="parser.js?v=18"></script>
+<script src="app.js?v=18"></script>
 </body>
 </html>

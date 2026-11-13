@@ -18,6 +18,9 @@ function resultDay(p){
   return daysAgo(key) < 0 ? dayKey() : key;   // a "tomorrow" puzzle is a timezone edge: count it today
 }
 const MAX_BACKFILL = 7;
+// Phones and tablets: no keyboard shortcuts, and auto-log (clipboard on focus) doesn't work there.
+const TOUCH = matchMedia("(pointer: coarse)").matches;
+const KEYV = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent) ? "⌘V" : "Ctrl+V";
 const local = {
   get(k){ try { return JSON.parse(localStorage.getItem(k)); } catch(e) { return null; } },
   set(k,v){ try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, JSON.stringify(v)); } catch(e) {} },
@@ -50,12 +53,13 @@ const isUnnamed = () => S.profile.display_name === (S.user.email || "").split("@
 
 // Guests are real (anonymous) accounts, so follows and challenges work the same.
 async function signInGuest(){
-  $("guestBtn").disabled = true;
+  const btn = $("guestBtn");
+  btn.disabled = true; btn.textContent = "Starting...";
   const { error } = await sb.auth.signInAnonymously();
-  $("guestBtn").disabled = false;
+  btn.disabled = false; btn.textContent = "Try it now";
   if(error){
-    $("authNotice").hidden = false;
-    $("authNotice").textContent = /disabled/i.test(error.message) ? "Guest sign-in is turned off right now. Use your email instead."
+    $("guestNotice").hidden = false;
+    $("guestNotice").textContent = /disabled/i.test(error.message) ? "Guest sign-in is turned off right now. Use your email instead."
       : /rate|many/i.test(error.message) ? "Too many guest sign-ins from this network. Try again later, or use your email."
       : error.message;
   }
@@ -228,7 +232,7 @@ function render(){
   $("backHint").textContent = extState() === "connected"
     ? "Tap Share in the game. The extension logs it."
     : autoOn() ? "Tap Share in the game. It logs itself when you come back to this tab."
-    : "Tap Share in the game, then press ⌘V here.";
+    : TOUCH ? "Tap Share in the game, then tap Paste here." : `Tap Share in the game, then press ${KEYV} here.`;
   renderAuto();
 
   const today = dayKey();
@@ -628,6 +632,12 @@ async function saveDetected(){
   else $("save").disabled = false;
 }
 
+$("gameChips").innerHTML = GAMES.map(g => `<span class="chip">${iconHtml(g)}${esc(g.name)}</span>`).join("");
+$("keyHint").textContent = KEYV;
+if(TOUCH){
+  document.querySelector("#dropzone b").textContent = "Copied a result? Tap Paste";
+  $("paste").placeholder = "Tap here and paste the text the game's Share button copied";
+}
 $("dropGames").textContent = `Works with ${GAMES.slice(0,-1).map(g => g.name.replace(/^The /, "the ")).join(", ")} and ${GAMES.at(-1).name}.`;
 $("samples").innerHTML = Object.keys(SAMPLES).map(k => `<button data-fill="${k}">${k}</button>`).join("");
 $("paste").addEventListener("input", onInput);
@@ -730,6 +740,7 @@ document.addEventListener("click", async e => {
     case "autooff": local.set("mc-auto", false); render(); toast("Auto-log is off"); break;
     case "authback": $("authSent").hidden = true; $("authAsk").hidden = false; $("authEmail").focus(); break;
     case "guest": signInGuest(); break;
+    case "toemail": e.preventDefault(); $("signin").scrollIntoView({ behavior: "smooth" }); setTimeout(() => $("authEmail").focus({ preventScroll: true }), 300); break;
     case "signout":
       if(isGuest() && !confirm("Sign out of this guest account? Guest accounts can't be signed back into, so your results and followers will be lost. To keep them, add your email first.")) break;
       // Otherwise the extension would keep logging into this account after you sign out.
@@ -864,9 +875,10 @@ function renderAuto(){
     return;
   }
   const manual = `<ol>
-      <li>Click <b>Play</b> to open the game in a new tab.</li>
+      <li>${TOUCH ? "Tap" : "Click"} <b>Play</b> to open the game.</li>
       <li>Finish it and tap the game's <b>Share</b> button.</li>
-      <li>Come back here and press <b>⌘V</b>.</li></ol>`;
+      <li>Come back here and ${TOUCH ? "tap <b>Paste</b>" : `press <b>${KEYV}</b>`}.</li></ol>`;
+  if(TOUCH){ el.innerHTML = `<h3>How logging works</h3>${manual}`; return; }
   if(autoOn()){
     el.innerHTML = `<h3>Auto-log is on</h3><ol>
       <li>Click <b>Play</b> to open the game in a new tab.</li>
@@ -878,7 +890,7 @@ function renderAuto(){
       <p class="note">Auto-log is blocked because clipboard access is off for this site. You can allow it from the site settings next to the address bar.</p>`;
   } else if(clipPermission === "unsupported"){
     el.innerHTML = `<h3>How logging works</h3>${manual}
-      <p class="note">Auto-log works in Chrome, Edge, Arc and Brave. This browser needs the ⌘V step.</p>`;
+      <p class="note">Auto-log works in Chrome, Edge, Arc and Brave. This browser needs the ${KEYV} step.</p>`;
   } else {
     el.innerHTML = `<h3>Skip the paste step</h3>
       <p class="note" style="margin-top:0">Turn on auto-log and your result saves itself when you come back from a game. Mindclub only reads your clipboard at that moment, and only keeps it if it's a game result.</p>
