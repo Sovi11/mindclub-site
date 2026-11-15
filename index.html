@@ -14,9 +14,14 @@
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<meta name="theme-color" content="#f4efe6">
+<meta name="apple-mobile-web-app-title" content="Mindclub">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=18">
+<link rel="stylesheet" href="styles.css?v=21">
 </head>
 <body>
 
@@ -24,6 +29,7 @@
 <div class="authwrap" id="authScreen" hidden>
   <section class="hero">
     <h1>mind<span>club</span></h1>
+    <div class="heroinvite" id="heroInvite" hidden></div>
     <p class="tagline">Your daily puzzles, with friends. Log Wordle, Connections, Strands, Queens and more in one place, see how your friends did, and challenge them to beat you.</p>
     <div class="cta">
       <button class="btn primary big" id="guestBtn" data-act="guest" type="button">Try it now</button>
@@ -104,10 +110,13 @@
       <div class="top">
         <div>
           <h1 id="hello">Today</h1>
-          <div class="sub" id="todaySub"></div>
+          <div class="sub"><span id="todaySub"></span> <span class="streakpill" id="streakPill" hidden></span></div>
         </div>
         <button class="btn primary" data-act="log">+ Log a result</button>
       </div>
+
+      <div class="panel invitebar" id="inviteBar" hidden></div>
+      <div class="panel streakbar" id="streakBar" hidden></div>
 
       <div class="panel guestbar" id="guestBar" hidden>
         <div class="gtext"><b>You're using a guest account</b>
@@ -230,6 +239,7 @@
       <h3>Your streak</h3>
       <div class="streakbig"><span class="n serif" id="streakN">0</span><span class="muted" id="streakLbl">days</span></div>
       <div class="week" id="week"></div>
+      <button class="linkbtn" data-act="remind">Remind me daily</button>
     </div>
     <div class="panel" id="chPanel" hidden>
       <h3>Challenges <small id="chPanelN"></small></h3>
@@ -303,11 +313,25 @@
   </form>
 </div>
 
+<!-- daily reminder -->
+<div class="modal-bg" id="remBg">
+  <form class="modal" id="remForm" role="dialog" aria-modal="true" aria-labelledby="remTitle">
+    <h2 id="remTitle">Daily reminder</h2>
+    <div class="muted">Adds a repeating event to your calendar, on your phone or computer, that links back here. You can delete it from your calendar any time.</div>
+    <label class="flabel" for="remTime">Remind me at</label>
+    <input class="field" id="remTime" type="time" value="08:00" required>
+    <div class="mfoot" style="margin-top:18px">
+      <button class="btn ghost" type="button" data-act="closerem">Cancel</button>
+      <button class="btn primary" type="submit">Add to my calendar</button>
+    </div>
+  </form>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script src="config.js?v=18"></script>
-<script src="parser.js?v=18"></script>
-<script src="app.js?v=18"></script>
+<script src="config.js?v=21"></script>
+<script src="parser.js?v=21"></script>
+<script src="app.js?v=21"></script>
 </body>
 </html>

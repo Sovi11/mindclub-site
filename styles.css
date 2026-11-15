@@ -356,3 +356,24 @@ select.field{appearance:auto}
 }
 @media (min-width:901px){ .cta [data-act=toemail]{display:none} }
 @media (max-width:760px){ #dropGames{display:none} .dropzone{margin-bottom:18px} }
+
+/* demo friend */
+.demotag{font:600 10.5px Inter;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border:1px dashed var(--muted);border-radius:6px;padding:1px 6px;margin-left:2px}
+.demonote{margin-top:10px;font-size:12.5px;color:var(--muted);background:var(--soft);border-radius:10px;padding:8px 10px;line-height:1.5}
+.demonote span{display:block;margin-top:4px}
+.demonote .linkbtn{margin:0;font-size:12.5px}
+
+/* invite, streak, share */
+.heroinvite{font-weight:600;font-size:16px;background:var(--accent-soft);color:var(--accent);border-radius:12px;padding:12px 14px;max-width:520px}
+.invitebar,.streakbar{display:flex;flex-wrap:wrap;align-items:center;gap:12px 16px;margin-bottom:18px}
+.invitebar{border-color:var(--accent)}
+.invitebar .av{width:36px;height:36px;font-size:14px}
+.invitebar .itext,.streakbar .itext{flex:1 1 260px;font-size:14.5px;line-height:1.45}
+.invitebar .itext > div{color:var(--muted);font-size:13.5px}
+.iacts{display:flex;align-items:center;gap:14px}
+.iacts .linkbtn{margin:0}
+.streakbar .sn{font:700 34px/1 Fraunces,serif;color:var(--accent);min-width:34px;text-align:center}
+.streakbar .muted{font-size:13.5px;color:var(--muted)}
+.streakpill{display:inline-block;margin-left:6px;font-size:12.5px;font-weight:600;color:var(--accent);background:var(--accent-soft);border-radius:999px;padding:2px 10px;vertical-align:1px}
+.linkbtn.strong{color:var(--accent);font-weight:600;text-decoration:none}
+input[type=time].field{max-width:180px}

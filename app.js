@@ -18,6 +18,9 @@ function resultDay(p){
   return daysAgo(key) < 0 ? dayKey() : key;   // a "tomorrow" puzzle is a timezone edge: count it today
 }
 const MAX_BACKFILL = 7;
+// One sample result per game, used for the demo friend.
+const DEMO = Object.fromEntries(Object.values(SAMPLES).map(parse).filter(Boolean).map(p => [p.game, p]));
+DEMO.wordle = { ...DEMO.wordle, label: "4/6", score: 4 };
 // Phones and tablets: no keyboard shortcuts, and auto-log (clipboard on focus) doesn't work there.
 const TOUCH = matchMedia("(pointer: coarse)").matches;
 const KEYV = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent) ? "⌘V" : "Ctrl+V";
@@ -82,7 +85,12 @@ $("keepForm").onsubmit = async e => {
 };
 // A profile link (?u=handle) is remembered across the email sign-in round trip.
 const urlFollow = new URLSearchParams(location.search).get("u");
-if(urlFollow){ local.set("mc-follow", cleanHandle(urlFollow)); history.replaceState(null, "", location.pathname); }
+if(urlFollow){
+  const g = new URLSearchParams(location.search).get("g");
+  local.set("mc-follow", cleanHandle(urlFollow));
+  local.set("mc-follow-game", G(g) ? g : null);
+  history.replaceState(null, "", location.pathname);
+}
 if(new URLSearchParams(location.search).get("connect") === "extension"){
   local.set("mc-connect-ext", true); history.replaceState(null, "", location.pathname);
 }
@@ -127,14 +135,18 @@ sb.auth.onAuthStateChange((_event, session) => {
 
 function showAuth(){
   $("appScreen").hidden = true; $("authScreen").hidden = false;
-  $("joinBadge").hidden = !local.get("mc-follow");
+  const h = local.get("mc-follow"), g = G(local.get("mc-follow-game"));
+  $("joinBadge").hidden = !h;
+  $("heroInvite").hidden = !h;
+  if(h) $("heroInvite").textContent = g ? `@${h} wants you to beat their ${g.name} today. Tap Try it now to take them on.`
+                                        : `@${h} sent you their link. Tap Try it now, then follow them in one tap.`;
 }
 
 async function boot(){
   $("authScreen").hidden = true; $("appScreen").hidden = false;
   await loadAll();
-  const h = local.get("mc-follow");
-  if(h && S.profile){ local.set("mc-follow", null); if(h !== S.profile.handle) showInvited(h); }
+  const h = local.get("mc-follow"), hg = local.get("mc-follow-game");
+  if(h && S.profile){ local.set("mc-follow", null); local.set("mc-follow-game", null); if(h !== S.profile.handle) showInvited(h, hg); }
   if(local.get("mc-connect-ext")){ local.set("mc-connect-ext", null); setTimeout(connectExtension, 300); }
 }
 
@@ -236,11 +248,17 @@ function render(){
   renderAuto();
 
   const today = dayKey();
+  // Demo friend: shown to people who follow nobody yet, on one game, so they can see the spoiler rule work.
+  // It only exists in this page. Nothing is saved and nobody else sees it.
+  const demo = !fing.length && !local.get("mc-demo-off")
+    ? (onToday.find(g => g.id === "wordle" && DEMO[g.id]) || onToday.find(g => DEMO[g.id]))?.id : null;
   const ordered = [...onToday].sort((a,b) => !!todays(a.id) - !!todays(b.id));
   $("games").innerHTML = ordered.map(g => {
     const mine = todays(g.id);
     const rows = S.board.filter(r => r.day === today && r.game === g.id && r.user_id !== S.user.id)
       .map(r => ({ uid: r.user_id, name: nameOf(r.user_id), label: r.revealed ? r.label : "hidden", score: r.score }));
+    if(g.id === demo) rows.push({ uid: "demo", name: "Demo friend", demo: true,
+      label: mine ? DEMO[g.id].label : "hidden", score: mine ? DEMO[g.id].score : null });
     let people = rows;
     if(mine){
       people = rows.concat({ uid: S.user.id, name: "You", me: true, label: mine.label, score: mine.score });
@@ -248,10 +266,10 @@ function render(){
     }
     const scores = people.map(x => x.score).filter(s => s != null && s < FAIL);
     const best = scores.length ? Math.min(...scores) : null;
-    const friendsLine = fing.length ? `${rows.length} of ${fing.length} you follow played` : "Follow friends to compare";
+    const friendsLine = fing.length ? `${rows.length} of ${fing.length} you follow played` : g.id === demo ? "Showing a demo friend" : "Follow friends to compare";
     const list = people.length
       ? people.map(x => `<div class="p ${x.me ? "me" : ""} ${mine && x.score === best && best != null ? "best" : ""}">
-          ${mine ? `<span class="rank">${rankOf(x, people)}</span>` : ""}${avatar(x.uid, x.name)}${esc(x.name)}<span class="res">${esc(x.label)}</span></div>`).join("")
+          ${mine ? `<span class="rank">${rankOf(x, people)}</span>` : ""}${avatar(x.uid, x.name)}${esc(x.name)}${x.demo ? `<span class="demotag">demo</span>` : ""}<span class="res">${esc(x.label)}</span></div>`).join("")
       : `<div class="nofriends">${fing.length ? "Nobody you follow has played yet." : "Your result shows here once you log it."}</div>`;
     const dared = S.challenges.filter(c => !c.outgoing && c.game === g.id && c.day === today && c.status === "open");
     const daredLine = dared.length && !mine
@@ -266,9 +284,13 @@ function render(){
       ${daredLine}
       <div class="people ${mine ? "" : "locked"}">
         ${list}
-        ${!mine && rows.length ? `<div class="lock">Log yours to see their scores.</div>` : ""}
+        ${!mine && rows.length ? `<div class="lock">${g.id === demo
+          ? "Log your " + esc(g.name) + " to see their score. Friends' scores stay hidden until you've played the same puzzle, so nobody spoils it for you."
+          : "Log yours to see their scores."}</div>` : ""}
+        ${mine && g.id === demo ? `<div class="demonote">That's how it works with real friends: their score shows once you've played too.
+          <span><button class="linkbtn" data-view="people">Find friends</button> · <button class="linkbtn" data-act="copylink">Copy your link</button> · <button class="linkbtn" data-act="hidedemo">Hide demo</button></span></div>` : ""}
       </div>
-      ${mine ? `<div class="cardfoot quiet"><button class="linkbtn" data-challenge="${g.id}">Challenge followers</button><button class="linkbtn" data-act="log">Change</button><button class="linkbtn" data-remove="${g.id}|${today}">Remove</button></div>`
+      ${mine ? `<div class="cardfoot quiet"><button class="linkbtn strong" data-share="${g.id}">Share</button><button class="linkbtn" data-challenge="${g.id}">Challenge followers</button><button class="linkbtn" data-act="log">Change</button><button class="linkbtn" data-remove="${g.id}|${today}">Remove</button></div>`
              : `<div class="cardfoot"><button class="btn ghost" data-act="log">Paste result</button><button class="btn ghost" data-played="${g.id}">I played, no score</button></div>`}
     </article>`;
   }).join("");
@@ -297,6 +319,8 @@ function render(){
     <div class="t">${ago(r.created_at)}</div></div></div>`).join("")
     : `<div class="nofriends">${fing.length ? "Quiet so far today." : "Results from people you follow show up here."}</div>`;
 
+  renderInvite();
+  renderStreak(s);
   renderChallenges();
   renderPeople();
   renderHistory();
@@ -445,12 +469,93 @@ $("findInput").addEventListener("input", () => {
 });
 $("findForm").onsubmit = e => e.preventDefault();
 
-async function showInvited(handle){
+// Someone opened a friend's link (?u=handle, maybe &g=game): offer a one-tap follow on Today.
+let inviteGame = null;
+async function showInvited(handle, game){
   const { data } = await sb.rpc("find_people", { p_q: handle });
   const p = (data || []).find(x => x.handle === handle);
   if(!p) return toast(`Couldn't find @${handle}`);
-  invited = p; showView("people");
-  if(!p.i_follow) toast(`Follow ${p.display_name} to see their results`);
+  invited = p; inviteGame = game || null;
+  showView("today"); render();
+}
+function renderInvite(){
+  const bar = $("inviteBar");
+  if(!invited){ bar.hidden = true; return; }
+  const p = { ...invited, ...(S.people.find(x => x.user_id === invited.user_id) || {}) };
+  const g = G(inviteGame), name = esc(p.display_name), mine = g && todays(g.id);
+  bar.hidden = false;
+  if(!p.i_follow){
+    bar.innerHTML = `${avatar(p.user_id, p.display_name)}<div class="itext"><b>${name}</b> <span class="gsub">@${esc(p.handle)}</span>
+        <div>${g ? `wants you to beat their ${esc(g.name)} today.` : "sent you their link."} Follow them to compare scores. You'll see theirs once you've played.</div></div>
+      <div class="iacts"><button class="btn primary" data-follow="${p.user_id}">Follow ${name}</button><button class="linkbtn" data-act="dropinvite">Not now</button></div>`;
+  } else if(g && !mine){
+    bar.innerHTML = `${avatar(p.user_id, p.display_name)}<div class="itext">You follow <b>${name}</b>. Play today's ${esc(g.name)}, then log it to see who won.</div>
+      <div class="iacts"><a class="btn dark" href="${g.url}" target="_blank" rel="noopener" data-play="${g.id}">Play ${esc(g.name)}</a><button class="linkbtn" data-act="dropinvite">Close</button></div>`;
+  } else {
+    bar.innerHTML = `${avatar(p.user_id, p.display_name)}<div class="itext">You follow <b>${name}</b>. ${g ? `Your ${esc(g.name)} is on the card below.` : "Their results show on your Today page."}</div>
+      <div class="iacts"><button class="linkbtn" data-act="dropinvite">Close</button></div>`;
+  }
+}
+
+/* ================= streak + daily reminder ================= */
+function renderStreak(s){
+  const playedToday = S.mine.some(r => r.day === dayKey());
+  $("streakPill").hidden = s < 2;
+  $("streakPill").textContent = `${s}-day streak`;
+  const bar = $("streakBar");
+  if(s > 0 && !playedToday){
+    bar.hidden = false;
+    bar.innerHTML = `<div class="sn serif">${s}</div><div class="itext"><b>${s === 1 ? "You played yesterday. Log a game today to start a 2-day streak" : `Keep your ${s}-day streak going`}</b>
+      <div class="muted">Log any game today. ${new Date().getHours() >= 18 ? "It resets at midnight." : ""}</div></div>
+      <div class="iacts"><button class="linkbtn" data-act="remind">Remind me daily</button></div>`;
+  } else bar.hidden = true;
+}
+function openRemind(){
+  $("remTime").value = local.get("mc-rem-time") || "08:00";
+  $("remBg").classList.add("open");
+}
+// A repeating calendar event (.ics) works on every phone and computer, with no notifications server.
+function reminderIcs(time){
+  const [hh, mm] = time.split(":"), t = new Date(); t.setDate(t.getDate() + 1);
+  const ymd = `${t.getFullYear()}${String(t.getMonth()+1).padStart(2,"0")}${String(t.getDate()).padStart(2,"0")}`;
+  const now = new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d+/, "");
+  const url = location.origin + location.pathname;
+  return ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Mindclub//Daily reminder//EN", "CALSCALE:GREGORIAN", "BEGIN:VEVENT",
+    `UID:mindclub-daily-${S.profile.handle}@mindclub`, `DTSTAMP:${now}`, `DTSTART:${ymd}T${hh}${mm}00`, "DURATION:PT10M",
+    "RRULE:FREQ=DAILY", "SUMMARY:Daily puzzles", `DESCRIPTION:Play today's puzzles and log them: ${url}`, `URL:${url}`,
+    "BEGIN:VALARM", "ACTION:DISPLAY", "TRIGGER:PT0M", "DESCRIPTION:Daily puzzles", "END:VALARM",
+    "END:VEVENT", "END:VCALENDAR"].join("\r\n") + "\r\n";
+}
+$("remBg").onclick = e => { if(e.target.id === "remBg") $("remBg").classList.remove("open"); };
+$("remForm").onsubmit = e => {
+  e.preventDefault();
+  const time = $("remTime").value || "08:00";
+  local.set("mc-rem-time", time);
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([reminderIcs(time)], { type: "text/calendar" }));
+  a.download = "daily-puzzles-reminder.ics";
+  document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  $("remBg").classList.remove("open");
+  toast("Open the downloaded file to add the reminder to your calendar");
+};
+
+/* ================= share a result ================= */
+const shareUrl = game => `${location.origin}${location.pathname}?u=${S.profile.handle}${game ? "&g=" + game : ""}`;
+// Worded so it never looks like a game's own share text (auto-log ignores it).
+function shareText(gameId){
+  const r = todays(gameId), g = G(gameId);
+  return r && r.score != null && r.score < FAIL ? `I got ${r.label} on today's ${g.name}. Think you can beat me?`
+       : `I played today's ${g.name}. Think you can beat me?`;
+}
+async function shareResult(gameId){
+  const text = shareText(gameId), url = shareUrl(gameId);
+  if(navigator.share && TOUCH){
+    try { await navigator.share({ text, url }); return; }
+    catch(e){ if(e.name === "AbortError") return; }
+  }
+  try { await navigator.clipboard.writeText(`${text} ${url}`); toast("Copied. Paste it to a friend or your group chat."); }
+  catch(e){ toast("Couldn't copy. Your link is on the People page."); }
 }
 function personById(uid){
   return S.people.find(p => p.user_id === uid) || found.find(p => p.user_id === uid) || (invited?.user_id === uid ? invited : null);
@@ -628,7 +733,11 @@ async function saveDetected(){
   if(!detected || $("save").disabled) return;
   $("save").disabled = true;
   const d = detected, day = detectedDay || dayKey();
-  if(await saveResult({ ...d, stars }, day)){ closeModal(); toast(`${G(d.game).name} logged${day === dayKey() ? "" : " for " + prettyDay(day)}`); }
+  if(await saveResult({ ...d, stars }, day)){
+    closeModal();
+    toast(`${G(d.game).name} logged${day === dayKey() ? "" : " for " + prettyDay(day)}`,
+          day === dayKey() ? { label: "Share", run: () => shareResult(d.game) } : null);
+  }
   else $("save").disabled = false;
 }
 
@@ -708,8 +817,9 @@ function showView(v){
   if(v === "people" && !invited) setTimeout(() => $("findInput").focus(), 30);
 }
 document.addEventListener("click", async e => {
-  const el = e.target.closest("[data-view],[data-played],[data-play],[data-star],[data-fill],[data-remove],[data-vote],[data-follow],[data-unfollow],[data-rmfollower],[data-challenge],[data-decline],[data-cancel],[data-ptab],[data-act]"); if(!el) return;
+  const el = e.target.closest("[data-share],[data-view],[data-played],[data-play],[data-star],[data-fill],[data-remove],[data-vote],[data-follow],[data-unfollow],[data-rmfollower],[data-challenge],[data-decline],[data-cancel],[data-ptab],[data-act]"); if(!el) return;
   const d = el.dataset;
+  if(d.share) shareResult(d.share);
   if(d.view) showView(d.view);
   if(d.vote) vote(d.vote);
   if(d.follow) follow(d.follow);
@@ -740,6 +850,10 @@ document.addEventListener("click", async e => {
     case "autooff": local.set("mc-auto", false); render(); toast("Auto-log is off"); break;
     case "authback": $("authSent").hidden = true; $("authAsk").hidden = false; $("authEmail").focus(); break;
     case "guest": signInGuest(); break;
+    case "dropinvite": invited = null; inviteGame = null; render(); break;
+    case "remind": openRemind(); break;
+    case "closerem": $("remBg").classList.remove("open"); break;
+    case "hidedemo": local.set("mc-demo-off", true); render(); break;
     case "toemail": e.preventDefault(); $("signin").scrollIntoView({ behavior: "smooth" }); setTimeout(() => $("authEmail").focus({ preventScroll: true }), 300); break;
     case "signout":
       if(isGuest() && !confirm("Sign out of this guest account? Guest accounts can't be signed back into, so your results and followers will be lost. To keep them, add your email first.")) break;
@@ -754,7 +868,7 @@ document.addEventListener("click", async e => {
   }
 });
 
-const modalOpen = () => ["modalBg","askBg","chBg"].some(id => $(id).classList.contains("open"));
+const modalOpen = () => ["modalBg","askBg","chBg","remBg"].some(id => $(id).classList.contains("open"));
 document.addEventListener("paste", e => {
   if(!S.user || modalOpen() || ["INPUT","TEXTAREA"].includes(document.activeElement.tagName)) return;
   e.preventDefault(); openModal(e.clipboardData.getData("text"));
@@ -764,7 +878,7 @@ document.addEventListener("dragover", e => { if(!S.user) return; e.preventDefaul
 document.addEventListener("dragleave", e => { if(!e.relatedTarget) dz.classList.remove("hot"); });
 document.addEventListener("drop", e => { if(!S.user) return; e.preventDefault(); dz.classList.remove("hot"); openModal(e.dataTransfer.getData("text")); });
 document.addEventListener("keydown", e => {
-  if(e.key === "Escape"){ closeModal(); closeAsk(); closeCh(); }
+  if(e.key === "Escape"){ closeModal(); closeAsk(); closeCh(); $("remBg").classList.remove("open"); }
   if(e.key === "Enter" && (e.metaKey || e.ctrlKey) && $("modalBg").classList.contains("open")) saveDetected();
   if(S.user && !modalOpen() && e.key.toLowerCase() === "l" && !e.metaKey && !e.ctrlKey && !["INPUT","TEXTAREA"].includes(document.activeElement.tagName)){ e.preventDefault(); openModal(); }
 });
