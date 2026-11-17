@@ -1,0 +1,37 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Mindclub</title>
+<link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header>
+    <img src="icons/32.png" alt="" width="24" height="24">
+    <h1>Mindclub</h1>
+    <span id="state" class="pill"></span>
+  </header>
+
+  <section id="off" hidden>
+    <p>Finish a puzzle, tap the game's <b>Share</b> button, and the result is logged to Mindclub. No pasting.</p>
+    <button id="connect" class="primary">Connect to Mindclub</button>
+    <p class="note">Opens Mindclub. Sign in there and the extension connects itself.</p>
+  </section>
+
+  <section id="on" hidden>
+    <p class="lead">Tap <b>Share</b> in any of these games and it's logged.</p>
+    <div id="games"></div>
+    <h2>Logged from this browser</h2>
+    <ul id="recent"></ul>
+    <p id="empty" class="note">Nothing logged from here yet. Results show up once you tap Share in a game.</p>
+    <div class="row">
+      <button id="open" class="primary">Open Mindclub</button>
+      <button id="disconnect" class="link">Disconnect</button>
+    </div>
+  </section>
+
+<script src="config.js"></script>
+<script src="parser.js"></script>
+<script src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,44 @@
+{
+  "manifest_version": 3,
+  "name": "Mindclub",
+  "version": "1.0.0",
+  "description": "Logs your daily puzzle results to Mindclub when you tap the game's Share button.",
+  "icons": { "16": "icons/16.png", "32": "icons/32.png", "48": "icons/48.png", "128": "icons/128.png" },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": { "16": "icons/16.png", "32": "icons/32.png" }
+  },
+  "background": { "service_worker": "background.js" },
+  "permissions": ["storage"],
+  "host_permissions": ["https://kuiyymiwzsjiwgsgcxqk.supabase.co/*"],
+  "content_scripts": [
+    {
+      "matches": ["https://sovi11.github.io/mindclub-site/*"],
+      "js": ["bridge.js"],
+      "run_at": "document_start"
+    },
+    {
+      "matches": [
+        "https://www.nytimes.com/games/*",
+        "https://www.nytimes.com/crosswords/*",
+        "https://www.linkedin.com/games/*",
+        "https://krillion.io/*"
+      ],
+      "js": ["capture.js"],
+      "world": "MAIN",
+      "run_at": "document_start",
+      "all_frames": true
+    },
+    {
+      "matches": [
+        "https://www.nytimes.com/games/*",
+        "https://www.nytimes.com/crosswords/*",
+        "https://www.linkedin.com/games/*",
+        "https://krillion.io/*"
+      ],
+      "js": ["relay.js"],
+      "run_at": "document_start",
+      "all_frames": true
+    }
+  ]
+}
