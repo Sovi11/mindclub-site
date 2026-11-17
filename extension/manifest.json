@@ -27,7 +27,8 @@
       "js": ["capture.js"],
       "world": "MAIN",
       "run_at": "document_start",
-      "all_frames": true
+      "all_frames": true,
+      "match_about_blank": true
     },
     {
       "matches": [
@@ -38,7 +39,8 @@
       ],
       "js": ["relay.js"],
       "run_at": "document_start",
-      "all_frames": true
+      "all_frames": true,
+      "match_about_blank": true
     }
   ]
 }

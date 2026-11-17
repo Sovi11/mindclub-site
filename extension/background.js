@@ -19,7 +19,16 @@ const isSite = url => { try { return new URL(url).href.startsWith(siteUrl); } ca
 chrome.runtime.onMessage.addListener((msg, sender, reply) => {
   if (sender.id !== chrome.runtime.id) return;
   if (msg?.type === "share") {
-    handleShare(String(msg.text || "")).then(reply, e => reply({ status: "error", message: String(e?.message || e) }));
+    handleShare(String(msg.text || ""))
+      .catch(e => ({ status: "error", message: String(e?.message || e) }))
+      .then(r => {
+        // Some games (LinkedIn Pinpoint, Crossclimb, Mini Sudoku) run in an iframe: show the toast on the page itself.
+        if (r && sender.tab && sender.frameId) {
+          chrome.tabs.sendMessage(sender.tab.id, { type: "toast", r }, { frameId: 0 }).catch(() => {});
+          return reply(null);
+        }
+        reply(r);
+      });
     return true;
   }
   if (msg?.type === "connect" && sender.tab && isSite(sender.url)) {

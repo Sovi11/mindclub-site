@@ -10,8 +10,12 @@
     last = text; lastAt = Date.now();
     let r;
     try { r = await chrome.runtime.sendMessage({ type: "share", text }); } catch (err) { return; }
-    if (r) toast(r);
+    if (r) toast(r);   // in a game iframe the background sends the toast to the top frame instead
   });
+
+  if (window === window.top) {
+    chrome.runtime.onMessage.addListener(msg => { if (msg?.type === "toast" && msg.r) toast(msg.r); });
+  }
 
   function toast(r) {
     const name = `${r.game} ${r.label}`;
