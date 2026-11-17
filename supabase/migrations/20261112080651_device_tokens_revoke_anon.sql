@@ -1,0 +1,1 @@
+revoke execute on function public.create_device_token(text), public.revoke_device_tokens() from anon;
