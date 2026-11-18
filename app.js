@@ -306,12 +306,13 @@ function render(){
 
   // rail
   $("followCount").textContent = `${fing.length} following · ${fers.length} follower${fers.length === 1 ? "" : "s"}`;
-  const counts = {}; S.board.forEach(r => counts[r.user_id] = (counts[r.user_id]||0) + 1);
-  const lb = [{ user_id: S.user.id }, ...fing].map(m => ({ uid: m.user_id, n: nameOf(m.user_id), v: counts[m.user_id] || 0 })).sort((a,b) => b.v - a.v);
-  const max = Math.max(...lb.map(x => x.v), 1);
-  $("lb").innerHTML = lb.map(x => `<div class="row ${x.uid === S.user.id ? "me" : ""}">${avatar(x.uid, x.n)}
-    <span style="width:72px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(x.n)}</span><div class="bar"><i style="width:${x.v/max*100}%"></i></div><span class="n">${x.v}</span></div>`).join("")
-    + (fing.length ? "" : `<div class="nofriends" style="margin-top:4px">Follow friends to see how they're doing this week.</div>`);
+  const lb = weekBoard();
+  const max = Math.max(...lb.map(x => x.wins), 1);
+  $("lb").innerHTML = lb.map(x => `<div class="row ${x.uid === S.user.id ? "me" : ""}" title="${x.wins} win${x.wins === 1 ? "" : "s"} from ${x.compared} puzzle${x.compared === 1 ? "" : "s"} compared · ${x.played} played this week">
+    <span class="rk">${x.rank}</span>${avatar(x.uid, x.n)}
+    <span class="nm">${esc(x.n)}</span><div class="bar"><i style="width:${x.wins/max*100}%"></i></div><span class="n">${x.wins}</span><span class="pl">${x.played}</span></div>`).join("")
+    + (fing.length ? `<div class="lbnote">A win is the best score on a puzzle you also played. Ties share it.</div>`
+                   : `<div class="nofriends" style="margin-top:4px">Follow friends to see who's winning this week.</div>`);
 
   const feed = S.board.filter(r => r.day === today && r.user_id !== S.user.id).sort((a,b) => b.created_at.localeCompare(a.created_at)).slice(0,6);
   $("feed").innerHTML = feed.length ? feed.map(r => `<div class="item">${avatar(r.user_id, nameOf(r.user_id))}
@@ -325,6 +326,32 @@ function render(){
   renderPeople();
   renderHistory();
   renderPicker();
+}
+
+/* ================= weekly leaderboard =================
+   You and the people you follow, Monday to today. For every game and day where at least two of you
+   have a comparable score, the best score wins (ties share the win). Friends' scores are only revealed
+   on puzzles you played too, so the board only counts those: no spoilers. */
+function weekBoard(){
+  const ids = [S.user.id, ...following().map(p => p.user_id)];
+  const st = new Map(ids.map(id => [id, { uid: id, n: nameOf(id), wins: 0, compared: 0, played: 0 }]));
+  const groups = {};
+  for(const r of S.board){
+    const s = st.get(r.user_id); if(!s) continue;
+    s.played++;
+    if(r.revealed && r.score != null) (groups[r.game + "|" + r.day] ||= []).push(r);
+  }
+  for(const rows of Object.values(groups)){
+    if(rows.length < 2) continue;
+    const best = Math.min(...rows.map(r => r.score));
+    for(const r of rows){
+      const s = st.get(r.user_id); s.compared++;
+      if(r.score === best && best < FAIL) s.wins++;
+    }
+  }
+  const list = [...st.values()].sort((a,b) => b.wins - a.wins || b.played - a.played || (a.uid === S.user.id ? -1 : 1));
+  list.forEach((x, i) => x.rank = i && x.wins === list[i-1].wins ? list[i-1].rank : i + 1);
+  return list;
 }
 
 /* ================= challenges ================= */
@@ -382,8 +409,10 @@ function renderChallenges(){
   $("chRail").innerHTML = rail.map(c => chRow(c, true)).join("");
 }
 
-function openChallenge(gameId){
+let chPre = null;   // someone to tick when the challenge box opens from their People row
+function openChallenge(gameId, who = null){
   const fers = followers();
+  chPre = who;
   if(!fers.length){
     toast("Nobody follows you yet. Send them your link first.", { label: "Copy link", run: copyLink });
     return;
@@ -391,6 +420,7 @@ function openChallenge(gameId){
   const games = GAMES.filter(g => shownGames().includes(g) || g.id === gameId);
   $("chGame").innerHTML = games.map(g => `<option value="${g.id}" ${g.id === gameId ? "selected" : ""}>${esc(g.name)}${todays(g.id) ? ` (you: ${esc(todays(g.id).label)})` : ""}</option>`).join("");
   if(!gameId){ const played = games.find(g => todays(g.id)); if(played) $("chGame").value = played.id; }
+  $("chWho").innerHTML = "";
   drawChWho();
   $("chNote").value = ""; $("chErr").hidden = true; $("chSend").disabled = false;
   $("chBg").classList.add("open");
@@ -398,8 +428,10 @@ function openChallenge(gameId){
 function drawChWho(){
   const game = $("chGame").value, today = dayKey(), fers = followers();
   const already = new Set(S.challenges.filter(c => c.outgoing && c.game === game && c.day === today).map(c => c.other_id));
+  const ticked = new Set([...$("chWho").querySelectorAll("input:checked")].map(b => b.value));   // keep picks when the game changes
+  if(chPre) ticked.add(chPre);
   $("chWho").innerHTML = fers.map(p => `<label>
-      <input type="checkbox" value="${p.user_id}" ${already.has(p.user_id) ? "disabled" : fers.length === 1 ? "checked" : ""}>
+      <input type="checkbox" value="${p.user_id}" ${already.has(p.user_id) ? "disabled" : fers.length === 1 || ticked.has(p.user_id) ? "checked" : ""}>
       ${avatar(p.user_id, p.display_name)}${esc(p.display_name)}<span class="gsub">${already.has(p.user_id) ? "already challenged" : "@" + esc(p.handle)}</span></label>`).join("");
 }
 const closeCh = () => $("chBg").classList.remove("open");
@@ -439,6 +471,8 @@ function personRow(p, hl, inList){
   if(me) acts = `<span class="gsub">That's you</span>`;
   else if(p.i_follow) acts = `<button class="btn ghost" data-unfollow="${p.user_id}">Following</button>`;
   else acts = `<button class="btn primary" data-follow="${p.user_id}">${p.follows_me ? "Follow back" : "Follow"}</button>`;
+  // Challenges go to people who follow you (send_challenge enforces it).
+  if(!me && p.follows_me) acts = `<button class="btn ghost" data-chwith="${p.user_id}">Challenge</button>` + acts;
   if(inList && peopleTab === "followers" && p.follows_me) acts += `<button class="linkbtn" data-rmfollower="${p.user_id}" title="Stop them following you">Remove</button>`;
   return `<div class="person ${hl ? "hl" : ""}">${avatar(p.user_id, p.display_name)}
     <div class="who"><b>${esc(p.display_name)}</b><span>@${esc(p.handle)}</span>${tag}</div><div class="acts">${acts}</div></div>`;
@@ -817,7 +851,7 @@ function showView(v){
   if(v === "people" && !invited) setTimeout(() => $("findInput").focus(), 30);
 }
 document.addEventListener("click", async e => {
-  const el = e.target.closest("[data-share],[data-view],[data-played],[data-play],[data-star],[data-fill],[data-remove],[data-vote],[data-follow],[data-unfollow],[data-rmfollower],[data-challenge],[data-decline],[data-cancel],[data-ptab],[data-act]"); if(!el) return;
+  const el = e.target.closest("[data-share],[data-view],[data-played],[data-play],[data-star],[data-fill],[data-remove],[data-vote],[data-follow],[data-unfollow],[data-rmfollower],[data-challenge],[data-chwith],[data-decline],[data-cancel],[data-ptab],[data-act]"); if(!el) return;
   const d = el.dataset;
   if(d.share) shareResult(d.share);
   if(d.view) showView(d.view);
@@ -826,6 +860,7 @@ document.addEventListener("click", async e => {
   if(d.unfollow) unfollow(d.unfollow);
   if(d.rmfollower) removeFollower(d.rmfollower);
   if(d.challenge != null) openChallenge(d.challenge);
+  if(d.chwith) openChallenge("", d.chwith);
   if(d.decline) chAction("decline_challenge", d.decline, "Challenge declined");
   if(d.cancel) chAction("cancel_challenge", d.cancel, "Challenge cancelled");
   if(d.ptab){ peopleTab = d.ptab; renderPeople(); }
