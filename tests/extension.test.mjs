@@ -1,4 +1,4 @@
-// node --test tests/
+// node --test tests/*.test.mjs
 // Runs the extension's background worker in a sandbox with a fake chrome API and fetch.
 import { test } from "node:test";
 import assert from "node:assert/strict";

@@ -1,4 +1,4 @@
-// node --test tests/
+// node --test tests/*.test.mjs
 // Pure functions from the site, pulled out of app.js and run with stand-in state.
 import { test } from "node:test";
 import assert from "node:assert/strict";

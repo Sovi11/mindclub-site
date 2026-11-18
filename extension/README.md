@@ -18,7 +18,9 @@ Finish a puzzle, tap the game's Share button, and the result is logged to Mindcl
 | `background.js` | service worker | Parses with `parser.js`, works out the day like the site does, calls `log_result_via_token`. |
 | `popup.*` | toolbar popup | Connect, game links, what was logged from this browser, disconnect. |
 
-Game pages covered: `nytimes.com/games/*`, `nytimes.com/crosswords/*`, `linkedin.com/games/*`, `krillion.io`.
+Game pages covered: `nytimes.com/games/*`, `nytimes.com/crosswords/*`, `linkedin.com/games/*`, `krillion.io`,
+`merriam-webster.com/games/*` (Quordle, Octordle), `wafflegame.net`, `worldle.teuteuf.fr`, `globle-game.com`,
+`framed.wtf`, `nerdlegame.com`. A new game needs its site added to both game-page entries in `manifest.json`.
 Text that isn't a game result is dropped inside the extension and never sent anywhere.
 
 The device key only lets the extension add a result for its owner, for yesterday to tomorrow,
@@ -34,5 +36,5 @@ also revokes every key server-side.
 cp parser.js extension/parser.js
 ```
 
-`node --test tests/extension.test.mjs` fails if the copies differ, and covers the background
+`node --test tests/*.test.mjs` fails if the copies differ, and covers the background
 worker's logging paths with a fake Chrome API.
