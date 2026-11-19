@@ -3,6 +3,7 @@
   "name": "Mindclub",
   "version": "1.1.0",
   "description": "Logs your daily puzzle results to Mindclub when you tap the game's Share button.",
+  "homepage_url": "https://sovi11.github.io/mindclub-site/",
   "icons": {
     "16": "icons/16.png",
     "32": "icons/32.png",

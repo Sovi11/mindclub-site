@@ -40,3 +40,5 @@ li:first-child{border-top:0}
 li .name{flex:1}
 li .res{font-family:ui-monospace,Consolas,monospace;font-weight:600}
 li .when{color:var(--muted);font-size:12px;min-width:62px;text-align:right}
+footer{margin-top:12px;font-size:12px}
+footer a{color:var(--muted)}
