@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Web Store fill helper</title>
+<style>
+  :root{ --bg:#f4efe6; --card:#fffdf8; --ink:#1d1a16; --muted:#7a7064; --line:#e4dccd; --accent:#e2552d; --good:#2f7d4f; }
+  @media (prefers-color-scheme: dark){ :root{ --bg:#15130f; --card:#1f1c17; --ink:#f3ede2; --muted:#a1968a; --line:#332d24; --accent:#ff7a4d; --good:#6fcf97; } }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+  main{max-width:860px;margin:0 auto;padding:32px 16px 80px}
+  h1{font:700 30px Georgia,serif;margin:0 0 4px}
+  h2{font:600 20px Georgia,serif;margin:34px 0 10px;padding-top:10px;border-top:1px solid var(--line)}
+  .lead{color:var(--muted);margin:0 0 8px}
+  .f{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:10px 0}
+  .top{display:flex;gap:10px;align-items:center;justify-content:space-between}
+  .lbl{font-weight:600}
+  .hint{color:var(--muted);font-size:13px}
+  pre{white-space:pre-wrap;word-break:break-word;margin:8px 0 0;font:13px/1.5 ui-monospace,Consolas,monospace;color:var(--ink);max-height:240px;overflow:auto}
+  button{font:600 13px system-ui;border:0;border-radius:8px;padding:7px 14px;background:var(--accent);color:#fff;cursor:pointer;flex:none}
+  button.ok{background:var(--good)}
+  .tick{display:flex;gap:8px;align-items:center;margin:4px 0}
+  .tick b{color:var(--good)}
+  .step{color:var(--muted);font-size:13px;margin:6px 0 0}
+</style>
+</head>
+<body>
+<main>
+  <h1>Chrome Web Store: fill helper</h1>
+  <p class="lead">Go top to bottom. Click <b>Copy</b>, then paste into the matching field in the dashboard. For uploads, click
+    the dashboard's upload button, then paste the copied path into the file dialog's <b>File name</b> box and press Enter.
+    Clicked items turn green so you can see what's done.</p>
+
+  <h2>Package</h2>
+  <div class="f" data-v="C:\Users\prava\OneDrive\Desktop\mindclub\store\mindclub-extension-1.1.0.zip"><div class="top"><span class="lbl">Upload zip (New item / Package)</span></div></div>
+
+  <h2>Store listing tab</h2>
+  <div class="f" data-v="Finish today's Wordle, tap Share, and it's logged. No copying, no pasting.
+
+Mindclub is a home for your daily puzzles: log Wordle, Connections, Strands, the Mini, Pips, Quordle, Octordle, Waffle, Worldle, Globle, Framed, Nerdle, Krillion and LinkedIn's Queens, Tango, Zip, Pinpoint, Crossclimb and Mini Sudoku in one place, follow your friends, and see who won.
+
+This extension removes the boring part. When you tap a game's own Share button, it recognises the result and adds it to your Mindclub account, then shows a small confirmation in the corner of the page.
+
+• Works on the games' own sites. Play as you normally do.
+• No spoilers: friends' scores stay hidden on Mindclub until you've played the same puzzle.
+• Never overwrites a result you've already logged.
+• The popup links to every supported game and shows what was logged from this browser.
+
+Privacy: the extension only looks at text a game page copies when you share, and only on the supported game sites. Anything that isn't a game result is dropped inside your browser and never sent. No ads, no analytics, no tracking.
+
+How to start: install, click the Mindclub icon, then Connect. Sign in on Mindclub (email link, or try it as a guest) and the extension connects itself.
+
+Mindclub is an independent project and isn't affiliated with The New York Times, LinkedIn, Merriam-Webster or any game's publisher."><div class="top"><span class="lbl">Description</span></div></div>
+  <div class="f"><div class="top"><span class="lbl">Category</span></div><p class="step">Pick from the dropdown: <b>Lifestyle → Games</b>. Language: <b>English</b>.</p></div>
+  <div class="f" data-v="C:\Users\prava\OneDrive\Desktop\mindclub\extension\icons\128.png"><div class="top"><span class="lbl">Store icon (128×128)</span></div></div>
+  <div class="f" data-v="C:\Users\prava\OneDrive\Desktop\mindclub\store\screenshot-1-toast.png"><div class="top"><span class="lbl">Screenshot 1</span></div></div>
+  <div class="f" data-v="C:\Users\prava\OneDrive\Desktop\mindclub\store\screenshot-2-popup.png"><div class="top"><span class="lbl">Screenshot 2</span></div></div>
+  <div class="f" data-v="C:\Users\prava\OneDrive\Desktop\mindclub\store\screenshot-3-site.png"><div class="top"><span class="lbl">Screenshot 3</span></div></div>
+  <div class="f" data-v="C:\Users\prava\OneDrive\Desktop\mindclub\store\promo-small.png"><div class="top"><span class="lbl">Small promo tile (440×280)</span></div></div>
+  <div class="f"><div class="top"><span class="lbl">Official URL</span></div><p class="step">Leave as <b>None</b>.</p></div>
+  <div class="f" data-v="https://sovi11.github.io/mindclub-site/"><div class="top"><span class="lbl">Homepage URL</span></div></div>
+  <div class="f" data-v="https://github.com/Sovi11/mindclub-site/issues"><div class="top"><span class="lbl">Support URL</span></div></div>
+  <p class="step">Click <b>Save draft</b> before switching tabs.</p>
+
+  <h2>Privacy tab</h2>
+  <div class="f" data-v="Logs the user's daily puzzle results to their Mindclub account when they tap a supported game's Share button."><div class="top"><span class="lbl">Single purpose description</span></div></div>
+  <div class="f" data-v="Keeps the user's Mindclub extension key (received when they click Connect on Mindclub) and a short list of results logged from this browser, shown in the popup."><div class="top"><span class="lbl">Justification: storage</span></div></div>
+  <div class="f" data-v="The extension talks to one backend, Mindclub's (kuiyymiwzsjiwgsgcxqk.supabase.co), to add a recognised game result to the user's account. Its content scripts run only on the supported daily game sites (nytimes.com/games, nytimes.com/crosswords, linkedin.com/games, krillion.io, merriam-webster.com/games, wafflegame.net, worldle.teuteuf.fr, globle-game.com, framed.wtf, nerdlegame.com): when the user taps a game's Share button the page copies the result text, the script checks it in the browser and passes it on only if it is a game result, then shows a small 'logged' confirmation. A script on the Mindclub site (sovi11.github.io/mindclub-site) tells the site the extension is installed and receives the extension key when the user clicks Connect."><div class="top"><span class="lbl">Justification: host permissions</span></div><p class="hint">Covers the backend and every site the content scripts run on.</p></div>
+  <div class="f"><div class="top"><span class="lbl">Are you using remote code?</span></div><p class="step">Choose <b>No, I am not using remote code</b>.</p></div>
+  <div class="f"><div class="top"><span class="lbl">Data usage</span></div>
+    <p class="step">Tick only these two:</p>
+    <div class="tick"><b>☑</b> Authentication information</div>
+    <div class="tick"><b>☑</b> Website content</div>
+    <p class="step">Then tick all three certifications at the bottom (don't sell data / single purpose only / not for credit).</p></div>
+  <div class="f" data-v="https://sovi11.github.io/mindclub-site/privacy.html"><div class="top"><span class="lbl">Privacy policy URL</span></div></div>
+  <p class="step">Save draft.</p>
+
+  <h2>Distribution tab</h2>
+  <div class="f"><div class="top"><span class="lbl">Visibility</span></div><p class="step"><b>Unlisted</b>. Regions: <b>All regions</b>. Payments: <b>Free</b>.</p></div>
+
+  <h2>Test instructions (if asked, under Account/Test or in the submit dialog)</h2>
+  <div class="f" data-v="No account needed:
+1. Click the extension icon, then &quot;Connect to Mindclub&quot;. The Mindclub site opens.
+2. Click &quot;Try it now&quot; to start a guest account. The extension connects by itself (&quot;Extension connected&quot; toast).
+3. Open https://krillion.io/ (or any NYT game, e.g. https://www.nytimes.com/games/wordle), finish the puzzle and tap the game's Share button.
+4. A &quot;Mindclub: … logged&quot; toast appears bottom-right, and the result shows on the Mindclub Today page and in the extension popup."><div class="top"><span class="lbl">Test instructions</span></div></div>
+
+  <h2>Submit</h2>
+  <p class="lead">Click <b>Submit for review</b>. If it lists missing items, tell Claude what it says.</p>
+</main>
+<script>
+  for (const f of document.querySelectorAll(".f[data-v]")) {
+    const v = f.dataset.v, b = document.createElement("button");
+    b.textContent = "Copy";
+    b.onclick = async () => {
+      try { await navigator.clipboard.writeText(v); }
+      catch (e) { const t = document.createElement("textarea"); t.value = v; document.body.append(t); t.select(); document.execCommand("copy"); t.remove(); }
+      b.textContent = "Copied ✓"; b.classList.add("ok"); f.style.borderColor = "var(--good)";
+    };
+    f.querySelector(".top").append(b);
+    const pre = document.createElement("pre"); pre.textContent = v; f.append(pre);
+  }
+</script>
+</body>
+</html>
