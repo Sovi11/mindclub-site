@@ -18,22 +18,22 @@ Logs your daily puzzle results to Mindclub when you tap the game's Share button.
 **Description:**
 
 ```
-Finish today's Wordle, tap Share, and it's logged. No copying, no pasting.
+Finish your daily puzzle, tap the game's Share button, and your result is logged to Mindclub. No copying, no pasting.
 
-Mindclub is a home for your daily puzzles: log Wordle, Connections, Strands, the Mini, Pips, Quordle, Octordle, Waffle, Worldle, Globle, Framed, Nerdle, Krillion and LinkedIn's Queens, Tango, Zip, Pinpoint, Crossclimb and Mini Sudoku in one place, follow your friends, and see who won.
+Mindclub is a home for the daily word and logic puzzles you already play: keep your results in one place, follow your friends, and see who won today.
 
-This extension removes the boring part. When you tap a game's own Share button, it recognises the result and adds it to your Mindclub account, then shows a small confirmation in the corner of the page.
+This extension removes the boring part. When you tap a supported game's own Share button, it recognises the result, adds it to your Mindclub account and shows a small confirmation on the page.
 
-• Works on the games' own sites. Play as you normally do.
-• No spoilers: friends' scores stay hidden on Mindclub until you've played the same puzzle.
+• Play on the games' own sites, the way you normally do.
+• No spoilers: friends' scores stay hidden until you've played the same puzzle.
 • Never overwrites a result you've already logged.
-• The popup links to every supported game and shows what was logged from this browser.
+• The popup lists the supported games and shows what was logged from this browser.
 
-Privacy: the extension only looks at text a game page copies when you share, and only on the supported game sites. Anything that isn't a game result is dropped inside your browser and never sent. No ads, no analytics, no tracking.
+Privacy: the extension only looks at the text a game copies when you tap Share, and only on supported game sites. Anything that isn't a game result is dropped inside your browser and never sent. No ads, no analytics, no tracking.
 
-How to start: install, click the Mindclub icon, then Connect. Sign in on Mindclub (email link, or try it as a guest) and the extension connects itself.
+Getting started: install, click the Mindclub icon, then Connect. Sign in on Mindclub (email link, or try it as a guest) and the extension connects itself.
 
-Mindclub is an independent project and isn't affiliated with The New York Times, LinkedIn, Merriam-Webster or any game's publisher.
+Mindclub is an independent project and isn't affiliated with any puzzle's publisher.
 ```
 
 **Category:** Lifestyle → Games. If review objects because the extension isn't a game itself, use Lifestyle → Social Networking.
@@ -48,6 +48,9 @@ Mindclub is an independent project and isn't affiliated with The New York Times,
 **Official URL:** none (it needs a Search Console-verified domain; github.io doesn't qualify). Leave empty.
 **Homepage URL:** https://sovi11.github.io/mindclub-site/
 **Support URL:** https://github.com/Sovi11/mindclub-site/issues
+
+> Rejected once (Nov 2026, "keyword spam") for listing every supported game by name in the description.
+> Keep game names out of the description: one or two examples at most. The popup and screenshots show the full list.
 
 ## Privacy tab
 
