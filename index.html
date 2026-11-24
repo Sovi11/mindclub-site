@@ -17,11 +17,11 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="icon" type="image/png" href="icon-192.png">
-<meta name="theme-color" content="#f4efe6">
+<meta name="theme-color" content="#f5f8fb">
 <meta name="apple-mobile-web-app-title" content="Mindclub">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=25">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..700&family=JetBrains+Mono:wght@500;600;700&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css?v=26">
 </head>
 <body>
 
@@ -99,7 +99,7 @@
       </div>
       <div class="hints"><kbd id="keyHint">⌘V</kbd> anywhere to log a result.<br>
       <kbd>L</kbd> opens the log box.</div>
-      <a class="privlink" href="privacy.html">Privacy</a>
+      <div class="footlinks"><button data-act="tour">How it works</button><a href="privacy.html">Privacy</a></div>
     </div>
   </aside>
 
@@ -111,11 +111,16 @@
     <section class="view on" id="view-today">
       <div class="top">
         <div>
+          <div class="eyebrow"><span id="todaySub"></span><span class="streakpill" id="streakPill" hidden></span></div>
           <h1 id="hello">Today</h1>
-          <div class="sub"><span id="todaySub"></span> <span class="streakpill" id="streakPill" hidden></span></div>
         </div>
         <button class="btn primary" data-act="log">+ Log a result</button>
       </div>
+      <label class="searchbar" for="gameSearch">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="gameSearch" type="search" placeholder="Search all games" autocomplete="off" spellcheck="false" aria-label="Search games">
+        <kbd>/</kbd>
+      </label>
 
       <div class="panel invitebar" id="inviteBar" hidden></div>
       <div class="panel streakbar" id="streakBar" hidden></div>
@@ -170,7 +175,7 @@
         <button class="btn ghost" data-act="pasteclip">Paste</button>
       </div>
 
-      <div class="grid" id="games"></div>
+      <div class="glist" id="games"></div>
       <div class="gridfoot" id="gridFoot"></div>
     </section>
 
@@ -209,6 +214,10 @@
       <div class="top"><div><h1>Games</h1><div class="sub">Pick the games you play, and suggest ones Mindclub should add.</div></div></div>
       <div class="panel">
         <h3>Show on Today <small id="pickCount"></small></h3>
+        <label class="searchbar small" for="pickSearch">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input id="pickSearch" type="search" placeholder="Filter games" autocomplete="off" spellcheck="false" aria-label="Filter games">
+        </label>
         <div class="picker" id="picker"></div>
         <div class="muted" style="margin-top:12px">Hidden games still show on Today on days you log them, and friends still see your results.</div>
       </div>
@@ -247,18 +256,9 @@
       <h3>Challenges <small id="chPanelN"></small></h3>
       <div class="chlist compact" id="chRail"></div>
     </div>
-    <div class="panel" id="invitePanel">
-      <h3>Your link <small id="followCount"></small></h3>
-      <div class="nofriends" style="margin-bottom:10px">Send it to friends so they can follow you.</div>
-      <div class="invite"><code class="profileLink"></code><button class="btn dark" data-act="copylink">Copy</button></div>
-    </div>
     <div class="panel" id="lbPanel">
       <h3><span>This week</span><small>wins · played</small></h3>
       <div class="lb" id="lb"></div>
-    </div>
-    <div class="panel" id="feedPanel">
-      <h3>Following <small>today</small></h3>
-      <div class="feed" id="feed"></div>
     </div>
     <div class="panel how" id="howPanel"></div>
   </aside>
@@ -329,11 +329,29 @@
   </form>
 </div>
 
+<!-- first-login tour -->
+<div class="modal-bg" id="tourBg">
+  <div class="modal tour" role="dialog" aria-modal="true" aria-labelledby="tourTitle">
+    <div class="tourart" id="tourArt"></div>
+    <div class="tourbody">
+      <div class="eyebrow" id="tourStep"></div>
+      <h2 id="tourTitle"></h2>
+      <p id="tourText"></p>
+      <div class="textra" id="tourExtra"></div>
+      <div class="tourfoot">
+        <div class="dots" id="tourDots"></div>
+        <button class="btn ghost" data-act="tourback" id="tourBack">Back</button>
+        <button class="btn primary" data-act="tournext" id="tourNext">Next</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script src="config.js?v=25"></script>
-<script src="parser.js?v=25"></script>
-<script src="app.js?v=25"></script>
+<script src="config.js?v=26"></script>
+<script src="parser.js?v=26"></script>
+<script src="app.js?v=26"></script>
 </body>
 </html>

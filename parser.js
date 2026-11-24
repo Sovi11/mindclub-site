@@ -21,6 +21,7 @@ const GAMES = [
   {id:"globle", name:"Globle", sym:"G", color:"#2f6db5", by:"globle-game.com", url:"https://globle-game.com/"},
   {id:"framed", name:"Framed", sym:"F", color:"#5b5b66", by:"framed.wtf", url:"https://framed.wtf/"},
   {id:"nerdle", name:"Nerdle", sym:"N", color:"#7d4fb0", by:"nerdlegame.com", url:"https://www.nerdlegame.com/"},
+  {id:"hollowchess", name:"Hollow Chess", sym:"Hc", color:"#1f7a72", by:"hollowchess.com", url:"https://hollowchess.com/#daily"},
 ];
 const G = id => GAMES.find(g => g.id === id);
 
@@ -104,6 +105,12 @@ function parse(raw){
     return at < 0 ? {game:"framed", puzzle:m[1], label:"Failed", score:FAIL}
                   : {game:"framed", puzzle:m[1], label:`${at+1}/6`, score:at+1};
   }
+  // Hollow Chess daily puzzle (hollowchess.com, js/main.js shareDaily). Only solved shares count; a first-try
+  // solve ranks above one that took retries, then the faster time wins. Minutes can run past 59.
+  if(m = t.match(/Hollow Chess Daily #(\d+): solved (first try )?in (\d+):(\d{2})/i)){
+    const clean = !!m[2], secs = +m[3]*60 + +m[4];
+    return {game:"hollowchess", puzzle:m[1], label:`${m[3]}:${m[4]}${clean ? " · first try" : ""}`, score:(clean ? 0 : 100000) + secs};
+  }
   // Nerdle classic only: mini, micro, speed, binerdle and Instant shares start differently.
   if(m = t.match(/(?:^|\n)\s*nerdlegame (\d+) ([1-6X])\/6/i)){
     const n = m[2].toUpperCase();
@@ -122,7 +129,8 @@ function parse(raw){
 // Waffle #1762 = 2026-11-18, Worldle #1762 = 2026-11-18, Framed #1713 = 2026-11-18, Nerdle #1764 = 2026-11-18.
 const EPOCH = { wordle: "2021-06-19", connections: "2023-06-11", strands: "2024-03-03", krillion: "2026-07-15",
   quordle: "2022-01-24", octordle: "2022-01-24", waffle: "2022-01-21", worldle: "2022-01-21",
-  framed: "2022-03-11", nerdle: "2022-01-19" };
+  framed: "2022-03-11", nerdle: "2022-01-19",
+  hollowchess: "2026-11-20" };   // Hollow Chess: Daily #1 = 21 Nov 2026 (DAILY_EPOCH in its main.js), new one at 00:00 UTC
 function puzzleDate(p){
   if(p.date) return new Date(p.date + "T12:00");   // Globle: the share says which day it was
   const start = EPOCH[p.game];

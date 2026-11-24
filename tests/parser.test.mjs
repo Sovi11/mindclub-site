@@ -93,3 +93,16 @@ test("Nerdle", () => {
   assert.equal(dateOf("nerdlegame 1425 3/6"), "2025-12-14");
   assert.equal(dateOf("nerdlegame 1627 3/6"), "2026-07-04");
 });
+
+test("Hollow Chess", () => {
+  // Text built exactly as hollowchess.com's shareDaily() writes it.
+  const clean = "Hollow Chess Daily #4: solved first try in 1:23. It is mate in 2, and the board itself can move. Beat my time:";
+  assert.deepEqual(p(clean), { game: "hollowchess", label: "1:23 · first try", score: 83, puzzle: "4", date: null });
+  const retry = p("Hollow Chess Daily #4: solved in 0:58. It is a king alone on an island, mate in 3. Beat my time:");
+  assert.equal(retry.label, "0:58"); assert.equal(retry.score, 100058);
+  assert.ok(p(clean).score < retry.score, "a first-try solve ranks above a faster solve with retries");
+  assert.equal(p("Hollow Chess Daily #9: solved in 75:02. It is mate in 2. Beat my time:").score, 100000 + 75 * 60 + 2);
+  assert.equal(parse("Hollow Chess Daily #4: mate in 2, and the board itself can move. Everyone gets the same puzzle today:"), null);
+  assert.equal(dateOf("Hollow Chess Daily #1: solved in 1:00."), "2026-11-21");
+  assert.equal(dateOf("Hollow Chess Daily #4: solved in 1:00."), "2026-11-24");
+});

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Mindclub",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Logs your daily puzzle results to Mindclub when you tap the game's Share button.",
   "homepage_url": "https://sovi11.github.io/mindclub-site/",
   "icons": {
@@ -48,7 +48,9 @@
         "https://globle-game.com/*",
         "https://framed.wtf/*",
         "https://www.nerdlegame.com/*",
-        "https://nerdlegame.com/*"
+        "https://nerdlegame.com/*",
+        "https://hollowchess.com/*",
+        "https://www.hollowchess.com/*"
       ],
       "js": [
         "capture.js"
@@ -70,7 +72,9 @@
         "https://globle-game.com/*",
         "https://framed.wtf/*",
         "https://www.nerdlegame.com/*",
-        "https://nerdlegame.com/*"
+        "https://nerdlegame.com/*",
+        "https://hollowchess.com/*",
+        "https://www.hollowchess.com/*"
       ],
       "js": [
         "relay.js"

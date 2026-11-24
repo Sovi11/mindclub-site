@@ -37,16 +37,16 @@
       <style>
         .t{position:fixed;right:16px;bottom:16px;z-index:2147483647;max-width:min(340px,calc(100vw - 32px));
            display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border-radius:12px;
-           background:#1f1c17;color:#f3ede2;font:14px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif;
+           background:#0c1c2f;color:#e6f0fa;border:1px solid #17293e;font:14px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif;
            box-shadow:0 8px 28px rgba(0,0,0,.28);animation:in .18s ease-out}
         @keyframes in{from{opacity:0;transform:translateY(8px)}}
         .dot{flex:none;width:28px;height:28px;border-radius:8px;display:grid;place-items:center;
              font-weight:700;font-size:13px;color:#fff}
         b{display:block;font-weight:600}
-        span{color:#a1968a}
-        a{color:#ff7a4d;font-weight:600;text-decoration:none;white-space:nowrap}
+        span{color:#8197ad}
+        a{color:#38d4f2;font-weight:600;text-decoration:none;white-space:nowrap}
         a:hover{text-decoration:underline}
-        button{all:unset;cursor:pointer;color:#a1968a;padding:0 2px;font-size:16px;line-height:1}
+        button{all:unset;cursor:pointer;color:#8197ad;padding:0 2px;font-size:16px;line-height:1}
       </style>
       <div class="t" role="status">
         <div class="dot"></div>
@@ -55,7 +55,7 @@
       </div>`;
     const dot = root.querySelector(".dot");
     dot.textContent = ok ? "✓" : "!";
-    dot.style.background = ok ? (r.color || "#2f7d4f") : "#e2552d";
+    dot.style.background = ok ? (r.color || "#0f9f6e") : "#e8457f";
     root.querySelector("b").textContent = `Mindclub: ${title}`;
     root.querySelector("span").textContent = body;
     const a = root.querySelector("a");

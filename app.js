@@ -40,6 +40,7 @@ const S = {
   board: [],       // following_board rows, Monday..today
   challenges: [],  // my_challenges(), last 2 weeks
 };
+const openRows = new Set();   // Today rows the user expanded
 const todays = id => S.mine.find(r => r.game === id && r.day === dayKey());
 const loggedOn = (id, day) => S.mine.find(r => r.game === id && r.day === day);
 const following = () => S.people.filter(p => p.i_follow);
@@ -151,6 +152,7 @@ async function boot(){
   const h = local.get("mc-follow"), hg = local.get("mc-follow-game");
   if(h && S.profile){ local.set("mc-follow", null); local.set("mc-follow-game", null); if(h !== S.profile.handle) showInvited(h, hg); }
   if(local.get("mc-connect-ext")){ local.set("mc-connect-ext", null); setTimeout(connectExtension, 300); }
+  else if(!local.get(TOUR_KEY) && S.profile) setTimeout(() => { if(!modalOpen()) openTour(0); }, 400);
 }
 
 /* ================= data ================= */
@@ -255,8 +257,12 @@ function render(){
   // It only exists in this page. Nothing is saved and nobody else sees it.
   const demo = !fing.length && !local.get("mc-demo-off")
     ? (onToday.find(g => g.id === "wordle" && DEMO[g.id]) || onToday.find(g => DEMO[g.id]))?.id : null;
-  const ordered = [...onToday].sort((a,b) => !!todays(a.id) - !!todays(b.id));
-  $("games").innerHTML = ordered.map(g => {
+  // Search looks through every game, not just the ones picked for Today.
+  const q = ($("gameSearch").value || "").trim().toLowerCase();
+  const pool = q ? GAMES.filter(g => (g.name + " " + g.by + " " + g.id).toLowerCase().includes(q)) : onToday;
+  const ordered = [...pool].sort((a,b) => !!todays(a.id) - !!todays(b.id));
+  const chev = `<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>`;
+  $("games").innerHTML = ordered.length ? ordered.map(g => {
     const mine = todays(g.id);
     const rows = S.board.filter(r => r.day === today && r.game === g.id && r.user_id !== S.user.id)
       .map(r => ({ uid: r.user_id, name: nameOf(r.user_id), label: r.revealed ? r.label : "hidden", score: r.score }));
@@ -269,7 +275,7 @@ function render(){
     }
     const scores = people.map(x => x.score).filter(s => s != null && s < FAIL);
     const best = scores.length ? Math.min(...scores) : null;
-    const friendsLine = fing.length ? `${rows.length} of ${fing.length} you follow played` : g.id === demo ? "Showing a demo friend" : "Follow friends to compare";
+    const friendsLine = fing.length ? `${rows.filter(x => !x.demo).length} of ${fing.length} you follow played` : g.id === demo ? "Showing a demo friend" : "Follow friends to compare";
     const list = people.length
       ? people.map(x => `<div class="p ${x.me ? "me" : ""} ${mine && x.score === best && best != null ? "best" : ""}">
           ${mine ? `<span class="rank">${rankOf(x, people)}</span>` : ""}${avatar(x.uid, x.name)}${esc(x.name)}${x.demo ? `<span class="demotag">demo</span>` : ""}<span class="res">${esc(x.label)}</span></div>`).join("")
@@ -277,26 +283,37 @@ function render(){
     const dared = S.challenges.filter(c => !c.outgoing && c.game === g.id && c.day === today && c.status === "open");
     const daredLine = dared.length && !mine
       ? `<div class="chbadge">${esc(dared.slice(0,2).map(c => c.other_name).join(" and "))}${dared.length > 2 ? ` and ${dared.length - 2} more` : ""} challenged you</div>` : "";
-    return `<article class="card">
-      <div class="ghead">
+    // Collapsed row: your rank once you've played, otherwise who has played (scores stay hidden).
+    const meRow = people.find(x => x.me);
+    const rk = mine && people.length > 1 && meRow && meRow.score != null ? rankOf(meRow, people) : "";
+    const meta = rk ? `<span class="rkc ${rk === 1 ? "first" : ""}">#${rk} of ${people.length}</span>`
+      : !mine && rows.length ? `<span class="avs">${rows.slice(0,3).map(x => avatar(x.uid, x.name)).join("")}</span><span class="cnt">${rows.length} played</span>` : "";
+    const open = openRows.has(g.id);
+    return `<article class="grow ${mine ? "done" : ""} ${open ? "open" : ""}">
+      <div class="ghd" data-toggle="${g.id}" role="button" tabindex="0" aria-expanded="${open}">
         ${iconHtml(g)}
-        <div><div class="gname">${g.name}</div><div class="gsub">${g.by} · ${friendsLine}</div></div>
-        <div class="right">${mine ? `<span class="mine">${esc(mine.label)}</span>`
-          : `<a class="btn dark" href="${g.url}" target="_blank" rel="noopener" data-play="${g.id}">Play</a>`}</div>
+        <div class="gtxt"><div class="gname">${g.name}</div><div class="gsub">${esc(g.by)} · ${friendsLine}</div></div>
+        <div class="gmeta">${meta}</div>
+        ${mine ? `<span class="mine">${esc(mine.label)}</span>`
+          : `<a class="btn play" href="${g.url}" target="_blank" rel="noopener" data-play="${g.id}">Play</a>`}
+        ${chev}
       </div>
       ${daredLine}
-      <div class="people ${mine ? "" : "locked"}">
-        ${list}
-        ${!mine && rows.length ? `<div class="lock">${g.id === demo
-          ? "Log your " + esc(g.name) + " to see their score. Friends' scores stay hidden until you've played the same puzzle, so nobody spoils it for you."
-          : "Log yours to see their scores."}</div>` : ""}
-        ${mine && g.id === demo ? `<div class="demonote">That's how it works with real friends: their score shows once you've played too.
-          <span><button class="linkbtn" data-view="people">Find friends</button> · <button class="linkbtn" data-act="copylink">Copy your link</button> · <button class="linkbtn" data-act="hidedemo">Hide demo</button></span></div>` : ""}
+      <div class="gbody">
+        <div class="people ${mine ? "" : "locked"}">
+          ${list}
+          ${!mine && rows.length ? `<div class="lock">${g.id === demo
+            ? "Log your " + esc(g.name) + " to see their score. Friends' scores stay hidden until you've played the same puzzle, so nobody spoils it for you."
+            : "Log yours to see their scores."}</div>` : ""}
+          ${mine && g.id === demo ? `<div class="demonote">That's how it works with real friends: their score shows once you've played too.
+            <span><button class="linkbtn" data-view="people">Find friends</button> · <button class="linkbtn" data-act="copylink">Copy your link</button> · <button class="linkbtn" data-act="hidedemo">Hide demo</button></span></div>` : ""}
+        </div>
+        ${mine ? `<div class="cardfoot quiet"><button class="linkbtn strong" data-share="${g.id}">Share</button><button class="linkbtn" data-challenge="${g.id}">Challenge followers</button><button class="linkbtn" data-act="log">Change</button><button class="linkbtn" data-remove="${g.id}|${today}">Remove</button></div>`
+               : `<div class="cardfoot"><button class="btn ghost" data-act="log">Paste result</button><button class="btn ghost" data-played="${g.id}">I played, no score</button></div>`}
       </div>
-      ${mine ? `<div class="cardfoot quiet"><button class="linkbtn strong" data-share="${g.id}">Share</button><button class="linkbtn" data-challenge="${g.id}">Challenge followers</button><button class="linkbtn" data-act="log">Change</button><button class="linkbtn" data-remove="${g.id}|${today}">Remove</button></div>`
-             : `<div class="cardfoot"><button class="btn ghost" data-act="log">Paste result</button><button class="btn ghost" data-played="${g.id}">I played, no score</button></div>`}
     </article>`;
-  }).join("");
+  }).join("") : `<div class="nomatch">No game called "${esc(q)}" yet.<button class="linkbtn" data-view="games">Suggest it</button></div>`;
+  $("gridFoot").hidden = !!q;
 
   // streak + week
   const s = streak();
@@ -308,7 +325,6 @@ function render(){
   }).join("");
 
   // rail
-  $("followCount").textContent = `${fing.length} following · ${fers.length} follower${fers.length === 1 ? "" : "s"}`;
   const lb = weekBoard();
   const max = Math.max(...lb.map(x => x.wins), 1);
   $("lb").innerHTML = lb.map(x => `<div class="row ${x.uid === S.user.id ? "me" : ""}" title="${x.wins} win${x.wins === 1 ? "" : "s"} from ${x.compared} puzzle${x.compared === 1 ? "" : "s"} compared · ${x.played} played this week">
@@ -317,11 +333,6 @@ function render(){
     + (fing.length ? `<div class="lbnote">A win is the best score on a puzzle you also played. Ties share it.</div>`
                    : `<div class="nofriends" style="margin-top:4px">Follow friends to see who's winning this week.</div>`);
 
-  const feed = S.board.filter(r => r.day === today && r.user_id !== S.user.id).sort((a,b) => b.created_at.localeCompare(a.created_at)).slice(0,6);
-  $("feed").innerHTML = feed.length ? feed.map(r => `<div class="item">${avatar(r.user_id, nameOf(r.user_id))}
-    <div><b>${esc(nameOf(r.user_id))}</b> finished ${G(r.game)?.name || esc(r.game)}${r.revealed ? ` · <span class="mono">${esc(r.label)}</span>` : ""}
-    <div class="t">${ago(r.created_at)}</div></div></div>`).join("")
-    : `<div class="nofriends">${fing.length ? "Quiet so far today." : "Results from people you follow show up here."}</div>`;
 
   renderInvite();
   renderStreak(s);
@@ -627,7 +638,8 @@ async function copyLink(){
 function renderPicker(){
   const shown = shownGames();
   $("pickCount").textContent = `${shown.length} of ${GAMES.length}`;
-  $("picker").innerHTML = GAMES.map(g => `<label class="pick ${shown.includes(g) ? "" : "off"}">
+  const pq = ($("pickSearch").value || "").trim().toLowerCase();
+  $("picker").innerHTML = GAMES.filter(g => !pq || (g.name + " " + g.by).toLowerCase().includes(pq)).map(g => `<label class="pick ${shown.includes(g) ? "" : "off"}">
     <input type="checkbox" data-pick="${g.id}" ${shown.includes(g) ? "checked" : ""}>${iconHtml(g)}
     <div><div class="gname">${g.name}</div><div class="gsub">${esc(g.by)}</div></div></label>`).join("");
 }
@@ -854,7 +866,7 @@ function showView(v){
   if(v === "people" && !invited) setTimeout(() => $("findInput").focus(), 30);
 }
 document.addEventListener("click", async e => {
-  const el = e.target.closest("[data-share],[data-view],[data-played],[data-play],[data-star],[data-fill],[data-remove],[data-vote],[data-follow],[data-unfollow],[data-rmfollower],[data-challenge],[data-chwith],[data-decline],[data-cancel],[data-ptab],[data-act]"); if(!el) return;
+  const el = e.target.closest("[data-share],[data-view],[data-played],[data-play],[data-star],[data-fill],[data-remove],[data-vote],[data-follow],[data-unfollow],[data-rmfollower],[data-challenge],[data-chwith],[data-toggle],[data-decline],[data-cancel],[data-ptab],[data-act]"); if(!el) return;
   const d = el.dataset;
   if(d.share) shareResult(d.share);
   if(d.view) showView(d.view);
@@ -864,6 +876,7 @@ document.addEventListener("click", async e => {
   if(d.rmfollower) removeFollower(d.rmfollower);
   if(d.challenge != null) openChallenge(d.challenge);
   if(d.chwith) openChallenge("", d.chwith);
+  if(d.toggle) toggleRow(el);
   if(d.decline) chAction("decline_challenge", d.decline, "Challenge declined");
   if(d.cancel) chAction("cancel_challenge", d.cancel, "Challenge cancelled");
   if(d.ptab){ peopleTab = d.ptab; renderPeople(); }
@@ -891,6 +904,9 @@ document.addEventListener("click", async e => {
     case "dropinvite": invited = null; inviteGame = null; render(); break;
     case "remind": openRemind(); break;
     case "closerem": $("remBg").classList.remove("open"); break;
+    case "tour": openTour(0); break;
+    case "tournext": tourGo(1); break;
+    case "tourback": tourGo(-1); break;
     case "hidedemo": local.set("mc-demo-off", true); render(); break;
     case "toemail": e.preventDefault(); $("signin").scrollIntoView({ behavior: "smooth" }); setTimeout(() => $("authEmail").focus({ preventScroll: true }), 300); break;
     case "signout":
@@ -906,7 +922,7 @@ document.addEventListener("click", async e => {
   }
 });
 
-const modalOpen = () => ["modalBg","askBg","chBg","remBg"].some(id => $(id).classList.contains("open"));
+const modalOpen = () => ["modalBg","askBg","chBg","remBg","tourBg"].some(id => $(id).classList.contains("open"));
 document.addEventListener("paste", e => {
   if(!S.user || modalOpen() || ["INPUT","TEXTAREA"].includes(document.activeElement.tagName)) return;
   e.preventDefault(); openModal(e.clipboardData.getData("text"));
@@ -916,7 +932,9 @@ document.addEventListener("dragover", e => { if(!S.user) return; e.preventDefaul
 document.addEventListener("dragleave", e => { if(!e.relatedTarget) dz.classList.remove("hot"); });
 document.addEventListener("drop", e => { if(!S.user) return; e.preventDefault(); dz.classList.remove("hot"); openModal(e.dataTransfer.getData("text")); });
 document.addEventListener("keydown", e => {
-  if(e.key === "Escape"){ closeModal(); closeAsk(); closeCh(); $("remBg").classList.remove("open"); }
+  if(e.key === "Escape"){ closeModal(); closeAsk(); closeCh(); $("remBg").classList.remove("open"); if($("tourBg").classList.contains("open")) endTour(); }
+  if(e.key === "/" && S.user && !modalOpen() && !["INPUT","TEXTAREA","SELECT"].includes(document.activeElement.tagName)){ e.preventDefault(); showView("today"); $("gameSearch").focus(); }
+  if((e.key === "Enter" || e.key === " ") && document.activeElement?.dataset?.toggle){ e.preventDefault(); toggleRow(document.activeElement); }
   if(e.key === "Enter" && (e.metaKey || e.ctrlKey) && $("modalBg").classList.contains("open")) saveDetected();
   if(S.user && !modalOpen() && e.key.toLowerCase() === "l" && !e.metaKey && !e.ctrlKey && !["INPUT","TEXTAREA"].includes(document.activeElement.tagName)){ e.preventDefault(); openModal(); }
 });
@@ -1013,6 +1031,7 @@ async function disconnectExtension(quiet){
 
 function renderAuto(){
   const el = $("howPanel"); if(!el) return;
+  el.hidden = extState() === "connected";
   if(extState() === "connected"){
     el.innerHTML = `<h3>Extension connected</h3><ol>
       <li>Click <b>Play</b> to open the game in a new tab.</li>
@@ -1070,3 +1089,58 @@ checkClipPermission().then(() => { renderAuto(); autoCheck(); });
 setInterval(() => { if(!document.hidden && S.user) loadSocial(); }, 60000);
 
 sb.auth.getSession().then(({ data }) => { if(!data.session) showAuth(); });
+
+/* ================= search + rows ================= */
+function toggleRow(head){
+  const row = head.closest(".grow"), id = head.dataset.toggle;
+  const open = !row.classList.contains("open");
+  row.classList.toggle("open", open); head.setAttribute("aria-expanded", open);
+  open ? openRows.add(id) : openRows.delete(id);
+}
+$("gameSearch").addEventListener("input", render);
+$("gameSearch").addEventListener("keydown", e => { if(e.key === "Escape"){ e.target.value = ""; render(); e.target.blur(); } });
+$("pickSearch").addEventListener("input", renderPicker);
+
+/* ================= first-login tour =================
+   Five short cards. Shown once per browser after the first sign-in; "How it works" in the sidebar replays it. */
+const TOUR_KEY = "mc-tour-1";
+const mockRow = (id, r, cls = "") => { const g = G(id); return `<div class="mrow">${iconHtml(g)}${g.name}<span class="r ${cls}">${r}</span></div>`; };
+const TOUR = [
+  { art: `<div class="big">mindclub</div>`, title: "Your daily puzzles, in one place",
+    text: "Wordle, Connections, Queens, Krillion and more: log the ones you play and see your friends' results right next to yours." },
+  { art: () => `<div class="mock">${mockRow("wordle", "Play →")}${mockRow("connections", "✓ Perfect", "good")}</div>`,
+    title: "Play, then log it",
+    text: () => extState() === "connected" ? "Hit Play to open a game. When you finish, tap the game's own Share button. The extension logs it for you."
+      : TOUCH ? "Hit Play to open a game. When you finish, tap the game's Share button, come back and tap Paste."
+      : `Hit Play to open a game. When you finish, tap the game's Share button, then press ${KEYV} anywhere here.`,
+    extra: () => CAN_EXT && !extState() ? `<a class="btn primary" href="${EXT_URL}" target="_blank" rel="noopener">Get the extension: no pasting</a>` : "" },
+  { art: () => `<div class="mock">${mockRow("queens", "1:07", "blur")}${mockRow("waffle", "5/5 ★", "blur")}</div>`, title: "No spoilers",
+    text: "Friends' scores stay blurred until you've played the same puzzle. Play first, then see how you did." },
+  { art: () => `<div class="mock"><div class="mrow"><div class="av" style="background:#e8457f">M</div>@maya<span class="r good">Following</span></div><div class="mrow"><div class="av" style="background:#0891b2">S</div>@sam_k<span class="r">Follow</span></div></div>`,
+    title: "Bring your friends", text: "Follow people by their @handle, or send them your link. You see results from everyone you follow.",
+    extra: () => `<button class="btn ghost" data-act="copylink">Copy my link</button>` },
+  { art: () => `<div class="mock">${["Maya","You","Sam"].map((n, i) => `<div class="mrow"><span class="r ${i ? "" : "pink"}" style="margin:0;width:14px">${i + 1}</span>${n}<span class="r ${i ? "" : "pink"}">${[4,3,1][i]} wins</span></div>`).join("")}</div>`,
+    title: "Win the week", text: "Every puzzle you both play is a head-to-head: the best score wins. The weekly board shows who's ahead, and you can challenge followers to beat your score." },
+];
+let tourAt = 0;
+const val = v => typeof v === "function" ? v() : (v || "");
+function openTour(i){ tourAt = i; paintTour(); $("tourBg").classList.add("open"); }
+function paintTour(){
+  const t = TOUR[tourAt];
+  $("tourArt").innerHTML = val(t.art);
+  $("tourStep").textContent = `${tourAt + 1} of ${TOUR.length}`;
+  $("tourTitle").textContent = t.title;
+  $("tourText").textContent = val(t.text);
+  $("tourExtra").innerHTML = val(t.extra);
+  $("tourExtra").hidden = !val(t.extra);
+  $("tourDots").innerHTML = TOUR.map((_, i) => `<i class="${i === tourAt ? "on" : ""}"></i>`).join("");
+  $("tourBack").textContent = tourAt ? "Back" : "Skip";
+  $("tourNext").textContent = tourAt === TOUR.length - 1 ? "Let's play" : "Next";
+}
+function tourGo(d){
+  if(d < 0 && !tourAt) return endTour();
+  if(d > 0 && tourAt === TOUR.length - 1) return endTour();
+  tourAt += d; paintTour();
+}
+function endTour(){ local.set(TOUR_KEY, true); $("tourBg").classList.remove("open"); }
+$("tourBg").onclick = e => { if(e.target.id === "tourBg") endTour(); };

@@ -61,7 +61,7 @@ Logs the user's daily puzzle results to their Mindclub account when they tap a s
 
 - `storage`: Keeps the user's Mindclub extension key (received when they click Connect on Mindclub) and a short list of results logged from this browser, shown in the popup.
 - Host permission `https://kuiyymiwzsjiwgsgcxqk.supabase.co/*`: Mindclub's backend. The extension sends a recognised game result there to add it to the user's account.
-- Content scripts on the game sites (nytimes.com/games, nytimes.com/crosswords, linkedin.com/games, krillion.io, merriam-webster.com/games, wafflegame.net, worldle.teuteuf.fr, globle-game.com, framed.wtf, nerdlegame.com): When the user taps a game's Share button, the page copies the result text. The script sees that text, checks it in the browser, and passes it on only if it is a game result. It also shows a small "logged" confirmation on the page. It runs only on these game sites.
+- Content scripts on the game sites (nytimes.com/games, nytimes.com/crosswords, linkedin.com/games, krillion.io, merriam-webster.com/games, wafflegame.net, worldle.teuteuf.fr, globle-game.com, framed.wtf, nerdlegame.com, hollowchess.com): When the user taps a game's Share button, the page copies the result text. The script sees that text, checks it in the browser, and passes it on only if it is a game result. It also shows a small "logged" confirmation on the page. It runs only on these game sites.
 - Content script on https://sovi11.github.io/mindclub-site/*: Lets the Mindclub site know the extension is installed, and receives the extension key when the user clicks Connect.
 
 **Remote code:** No, I am not using remote code. (All JavaScript ships in the package; the backend call returns data only.)
@@ -99,4 +99,5 @@ No account needed:
 
 Approved and live (Unlisted) on 24 Nov 2026, v1.1.0: https://chromewebstore.google.com/detail/mindclub/mbjkoedlkpmpnnkhfnbdiopgcekjojam
 Item ID `mbjkoedlkpmpnnkhfnbdiopgcekjojam`. The site links to it (`EXT_URL` in app.js, landing page in index.html).
+v1.2.0 (Hollow Chess, new look) adds the hollowchess.com site, so its host-permission justification above now names it.
 To ship an update: bump `version` in extension/manifest.json, run `pwsh store/build.ps1`, upload the zip under Package, submit.
