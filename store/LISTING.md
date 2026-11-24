@@ -95,6 +95,8 @@ No account needed:
 4. A "Mindclub: … logged" toast appears bottom-right, and the result shows on the Mindclub Today page and in the extension popup.
 ```
 
-## After it's approved
+## Published
 
-The store link looks like `https://chromewebstore.google.com/detail/<id>`. Put it on the site's landing page ("install the Chrome extension") and in the How-logging-works panel, so people stop needing Developer mode.
+Approved and live (Unlisted) on 24 Nov 2026, v1.1.0: https://chromewebstore.google.com/detail/mindclub/mbjkoedlkpmpnnkhfnbdiopgcekjojam
+Item ID `mbjkoedlkpmpnnkhfnbdiopgcekjojam`. The site links to it (`EXT_URL` in app.js, landing page in index.html).
+To ship an update: bump `version` in extension/manifest.json, run `pwsh store/build.ps1`, upload the zip under Package, submit.

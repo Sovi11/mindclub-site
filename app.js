@@ -24,6 +24,9 @@ DEMO.wordle = { ...DEMO.wordle, label: "4/6", score: 4 };
 // Phones and tablets: no keyboard shortcuts, and auto-log (clipboard on focus) doesn't work there.
 const TOUCH = matchMedia("(pointer: coarse)").matches;
 const KEYV = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent) ? "⌘V" : "Ctrl+V";
+// The extension installs from the Chrome Web Store in Chrome and Chromium browsers (Brave, Edge, Arc) on desktop.
+const EXT_URL = "https://chromewebstore.google.com/detail/mindclub/mbjkoedlkpmpnnkhfnbdiopgcekjojam";
+const CAN_EXT = !TOUCH && /Chrome\//.test(navigator.userAgent);
 const local = {
   get(k){ try { return JSON.parse(localStorage.getItem(k)); } catch(e) { return null; } },
   set(k,v){ try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, JSON.stringify(v)); } catch(e) {} },
@@ -996,7 +999,8 @@ window.addEventListener("message", e => {
 });
 
 async function connectExtension(){
-  if(!extState()) return toast("Install the Mindclub extension first, then click Connect in it");
+  if(!extState()) return toast("Install the Mindclub extension first, then click Connect in it",
+    CAN_EXT && { label: "Install", run: () => window.open(EXT_URL, "_blank", "noopener") });
   const { data: token, error } = await sb.rpc("create_device_token", { p_label: "Chrome extension" });
   if(error) return toast("Couldn't connect the extension: " + error.message);
   window.postMessage({ __mindclubSite: true, type: "connect", token }, location.origin);
@@ -1028,6 +1032,18 @@ function renderAuto(){
       <li>Finish it and tap the game's <b>Share</b> button.</li>
       <li>Come back here and ${TOUCH ? "tap <b>Paste</b>" : `press <b>${KEYV}</b>`}.</li></ol>`;
   if(TOUCH){ el.innerHTML = `<h3>How logging works</h3>${manual}`; return; }
+  // Desktop Chrome/Brave/Edge without the extension: it's the easiest way, so offer it first.
+  if(CAN_EXT && !extState()){
+    el.innerHTML = `<h3>Log without pasting</h3>
+      <p class="note" style="margin-top:0">Add the Mindclub extension. Tap <b>Share</b> in a game and it's logged, right there on the game page.</p>
+      <a class="btn primary" href="${EXT_URL}" target="_blank" rel="noopener" style="width:100%;justify-content:center">Add to ${/Brave|Edg\//.test(navigator.userAgent) || navigator.brave ? "browser" : "Chrome"}, free</a>
+      <p class="note">After it's installed, come back here and click <b>Connect</b>.</p>
+      <details><summary>Other ways to log</summary>${autoOn()
+        ? `<p class="note">Auto-log is on: come back to this tab after tapping Share. <button class="linkbtn" data-act="autooff">Turn off</button></p>`
+        : clipPermission === "prompt" || clipPermission === "granted"
+          ? `<p class="note">Or turn on <button class="linkbtn" data-act="autoon">auto-log</button>: it reads your clipboard when you come back to this tab.</p>` : ""}${manual}</details>`;
+    return;
+  }
   if(autoOn()){
     el.innerHTML = `<h3>Auto-log is on</h3><ol>
       <li>Click <b>Play</b> to open the game in a new tab.</li>

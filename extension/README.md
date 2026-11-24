@@ -2,7 +2,11 @@
 
 Finish a puzzle, tap the game's Share button, and the result is logged to Mindclub.
 
-## Install (unpacked)
+## Install
+
+From the Chrome Web Store (works in Chrome, Brave, Edge, Arc): https://chromewebstore.google.com/detail/mindclub/mbjkoedlkpmpnnkhfnbdiopgcekjojam
+
+For development, load it unpacked instead:
 
 1. `chrome://extensions` → turn on **Developer mode** → **Load unpacked** → pick this `extension/` folder.
 2. Click the extension's icon → **Connect to Mindclub**. Sign in on the site and it connects itself
