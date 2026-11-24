@@ -3,5 +3,5 @@
 self.MINDCLUB_CONFIG = {
   supabaseUrl: "https://kuiyymiwzsjiwgsgcxqk.supabase.co",
   supabaseKey: "sb_publishable_0CJotFQiEuc-w1M7ibBj2Q_bDFdw8jj",
-  siteUrl: "https://sovi11.github.io/mindclub-site/",
+  siteUrl: "https://mindclub.in/",
 };

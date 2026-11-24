@@ -46,7 +46,7 @@ Mindclub is an independent project and isn't affiliated with any puzzle's publis
 - Small promo tile 440×280: `promo-small.png`
 
 **Official URL:** none (it needs a Search Console-verified domain; github.io doesn't qualify). Leave empty.
-**Homepage URL:** https://sovi11.github.io/mindclub-site/
+**Homepage URL:** https://mindclub.in/
 **Support URL:** https://github.com/Sovi11/mindclub-site/issues
 
 > Rejected once (Nov 2026, "keyword spam") for listing every supported game by name in the description.
@@ -62,7 +62,7 @@ Logs the user's daily puzzle results to their Mindclub account when they tap a s
 - `storage`: Keeps the user's Mindclub extension key (received when they click Connect on Mindclub) and a short list of results logged from this browser, shown in the popup.
 - Host permission `https://kuiyymiwzsjiwgsgcxqk.supabase.co/*`: Mindclub's backend. The extension sends a recognised game result there to add it to the user's account.
 - Content scripts on the game sites (nytimes.com/games, nytimes.com/crosswords, linkedin.com/games, krillion.io, merriam-webster.com/games, wafflegame.net, worldle.teuteuf.fr, globle-game.com, framed.wtf, nerdlegame.com, hollowchess.com): When the user taps a game's Share button, the page copies the result text. The script sees that text, checks it in the browser, and passes it on only if it is a game result. It also shows a small "logged" confirmation on the page. It runs only on these game sites.
-- Content script on https://sovi11.github.io/mindclub-site/*: Lets the Mindclub site know the extension is installed, and receives the extension key when the user clicks Connect.
+- Content script on https://mindclub.in/* (and its old address, https://sovi11.github.io/mindclub-site/*): Lets the Mindclub site know the extension is installed, and receives the extension key when the user clicks Connect.
 
 **Remote code:** No, I am not using remote code. (All JavaScript ships in the package; the backend call returns data only.)
 
@@ -77,7 +77,7 @@ Then tick all three certifications:
 - I do not use or transfer user data for purposes that are unrelated to my item's single purpose
 - I do not use or transfer user data to determine creditworthiness or for lending purposes
 
-**Privacy policy URL:** https://sovi11.github.io/mindclub-site/privacy.html
+**Privacy policy URL:** https://mindclub.in/privacy.html
 
 ## Distribution tab
 

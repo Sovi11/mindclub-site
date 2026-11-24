@@ -230,9 +230,11 @@ function render(){
   $("todaySub").textContent = `${now.toLocaleDateString(undefined,{weekday:"long", day:"numeric", month:"long"})} · ${done} of ${onToday.length} played`;
   $("gridFoot").innerHTML = `${shown.length < GAMES.length ? `Showing ${shown.length} of ${GAMES.length} games. ` : ""}<button class="linkbtn" data-view="games">Choose games</button> or <button class="linkbtn" data-view="games">suggest one we're missing</button>`;
 
-  // First-run welcome: shown until you follow someone or someone follows you.
+  // First-run welcome: shown once. It goes away when your name and handle are set (unless you just set
+  // them here, so step 2 stays in view), when you have anyone to follow or be followed by, or when you hide it.
   const fing = following(), fers = followers();
-  $("welcome").hidden = S.people.length > 0;
+  const setUp = !unnamed && !autoHandle(S.profile.handle);
+  $("welcome").hidden = S.people.length > 0 || !!local.get(WELCOME_KEY) || (setUp && !justNamed);
   $("wName").classList.toggle("done", !unnamed && !autoHandle(S.profile.handle));
   if(document.activeElement !== $("nameInput")) $("nameInput").value = unnamed ? "" : S.profile.display_name;
   if(document.activeElement !== $("handleInput")) $("handleInput").value = autoHandle(S.profile.handle) ? "" : S.profile.handle;
@@ -338,6 +340,7 @@ function render(){
   renderStreak(s);
   renderChallenges();
   renderPeople();
+  renderBoard();
   renderHistory();
   renderPicker();
 }
@@ -346,11 +349,11 @@ function render(){
    You and the people you follow, Monday to today. For every game and day where at least two of you
    have a comparable score, the best score wins (ties share the win). Friends' scores are only revealed
    on puzzles you played too, so the board only counts those: no spoilers. */
-function weekBoard(){
+function weekBoard(rows = S.board){
   const ids = [S.user.id, ...following().map(p => p.user_id)];
   const st = new Map(ids.map(id => [id, { uid: id, n: nameOf(id), wins: 0, compared: 0, played: 0 }]));
   const groups = {};
-  for(const r of S.board){
+  for(const r of rows){
     const s = st.get(r.user_id); if(!s) continue;
     s.played++;
     if(r.revealed && r.score != null) (groups[r.game + "|" + r.day] ||= []).push(r);
@@ -366,6 +369,63 @@ function weekBoard(){
   const list = [...st.values()].sort((a,b) => b.wins - a.wins || b.played - a.played || (a.uid === S.user.id ? -1 : 1));
   list.forEach((x, i) => x.rank = i && x.wins === list[i-1].wins ? list[i-1].rank : i + 1);
   return list;
+}
+
+/* ================= leaderboard page =================
+   Friends: weekBoard() over this week or the last 30 days. Everyone: global_board(), which ranks every
+   email account by points (10 x the share of players beaten on each puzzle) and never returns a score. */
+const WELCOME_KEY = "mc-welcome-done";
+let justNamed = false;
+let lbTab = "friends", lbPer = "week", lbSeq = 0;
+const lbData = { friends: {}, global: {} };
+const lbFrom = per => dayKey(per === "week" ? mondayOf(new Date()) : addDays(new Date(), -29));
+
+async function loadBoard(){
+  const seq = ++lbSeq, tab = lbTab, per = lbPer;
+  renderBoard();
+  if(tab === "friends" && per === "week") return;   // that's S.board, already loaded
+  const args = { p_from: lbFrom(per), p_to: dayKey() };
+  const { data, error } = await sb.rpc(tab === "global" ? "global_board" : "following_board", args);
+  lbData[tab][per] = error ? { error: error.message } : { rows: data || [] };
+  if(seq === lbSeq) renderBoard();
+}
+
+const boardHead = label => `<div class="brow bhead"><span class="rk">#</span><span></span><span class="who">Player</span><span></span><span class="sc">${label}</span><span class="pl">Played</span></div>`;
+function boardRow(rank, uid, name, handle, score, played, act = ""){
+  const me = uid === S.user.id;
+  return `<div class="brow ${me ? "me" : ""} ${rank === 1 ? "first" : ""}"><span class="rk">${rank}</span>${avatar(uid, name)}
+    <div class="who"><b>${esc(me ? S.profile.display_name : name)}</b>${me ? `<span>you</span>` : handle ? `<span>@${esc(handle)}</span>` : ""}</div>
+    <span class="act">${act}</span><span class="sc">${score}</span><span class="pl">${played}</span></div>`;
+}
+
+function renderBoard(){
+  if(!S.user || !S.profile) return;
+  document.querySelectorAll("[data-lbtab]").forEach(b => b.classList.toggle("on", b.dataset.lbtab === lbTab));
+  document.querySelectorAll("[data-lbper]").forEach(b => b.classList.toggle("on", b.dataset.lbper === lbPer));
+  const per = lbPer === "week" ? "this week" : "over the last 30 days";
+  $("lbSub").textContent = lbTab === "friends" ? `You and the people you follow, ${per}.` : `Everyone on Mindclub, ${per}.`;
+  $("lbHow").textContent = lbTab === "friends"
+    ? "A win is the best score on a puzzle at least two of you played. Ties share it. Friends' scores only count on puzzles you played too, so nothing gets spoiled."
+    : "On every puzzle you get up to 10 points: the share of other players you beat, with a tie counting half. Only totals are shown, never scores. Guest accounts aren't listed.";
+  const box = $("board");
+  const d = lbTab === "friends" && lbPer === "week" ? { rows: S.board } : lbData[lbTab][lbPer];
+  if(!d){ box.innerHTML = `<div class="nofriends">Loading…</div>`; return; }
+  if(d.error){ box.innerHTML = `<div class="notice err">Couldn't load the leaderboard: ${esc(d.error)}</div>`; return; }
+
+  if(lbTab === "friends"){
+    box.innerHTML = boardHead("Wins") + weekBoard(d.rows).map(x => boardRow(x.rank, x.uid, x.n, null, x.wins, x.played)).join("")
+      + (following().length ? "" : `<div class="nofriends bnote">Follow friends to compete with them. <button class="linkbtn" data-view="people">Find people</button></div>`);
+    return;
+  }
+  const rows = d.rows;
+  const mine = new Set(following().map(p => p.user_id));
+  const html = rows.map((r, i) => {
+    const gap = i && r.rank > rows[i-1].rank + 1 && r.user_id === S.user.id ? `<div class="bgap">…</div>` : "";
+    const act = r.user_id === S.user.id || mine.has(r.user_id) ? "" : `<button class="btn ghost" data-follow="${r.user_id}">Follow</button>`;
+    return gap + boardRow(r.rank, r.user_id, r.display_name, r.handle, +(+r.points).toFixed(1), r.played, act);
+  }).join("");
+  box.innerHTML = rows.length ? boardHead("Points") + html : `<div class="nofriends">Nobody has played ${per} yet.</div>`;
+  if(isGuest()) box.innerHTML += `<div class="nofriends bnote">Guests aren't on this board. Add your email to join it.</div>`;
 }
 
 /* ================= challenges ================= */
@@ -606,7 +666,8 @@ async function shareResult(gameId){
   catch(e){ toast("Couldn't copy. Your link is on the People page."); }
 }
 function personById(uid){
-  return S.people.find(p => p.user_id === uid) || found.find(p => p.user_id === uid) || (invited?.user_id === uid ? invited : null);
+  return S.people.find(p => p.user_id === uid) || found.find(p => p.user_id === uid) || (invited?.user_id === uid ? invited : null)
+    || Object.values(lbData.global).flatMap(d => d.rows || []).find(p => p.user_id === uid);
 }
 async function follow(uid){
   const p = personById(uid);
@@ -853,6 +914,7 @@ $("nameForm").onsubmit = async e => {
   const err = await saveProfile($("nameInput").value, $("handleInput").value);
   $("nameErr").hidden = !err; $("nameErr").textContent = err || "";
   if(err) return;
+  justNamed = true;
   document.activeElement.blur(); render(); toast("Saved");
 };
 
@@ -863,10 +925,11 @@ function showView(v){
   document.querySelectorAll("#nav button").forEach(b => b.classList.toggle("on", b.dataset.view === v)); window.scrollTo(0,0);
   if(v === "games") loadSuggestions();
   if(v === "people" || v === "challenges") { loadPeople(); loadSocial(); }
+  if(v === "leaderboard") loadBoard();
   if(v === "people" && !invited) setTimeout(() => $("findInput").focus(), 30);
 }
 document.addEventListener("click", async e => {
-  const el = e.target.closest("[data-share],[data-view],[data-played],[data-play],[data-star],[data-fill],[data-remove],[data-vote],[data-follow],[data-unfollow],[data-rmfollower],[data-challenge],[data-chwith],[data-toggle],[data-decline],[data-cancel],[data-ptab],[data-act]"); if(!el) return;
+  const el = e.target.closest("[data-share],[data-view],[data-played],[data-play],[data-star],[data-fill],[data-remove],[data-vote],[data-follow],[data-unfollow],[data-rmfollower],[data-challenge],[data-chwith],[data-toggle],[data-decline],[data-cancel],[data-ptab],[data-lbtab],[data-lbper],[data-act]"); if(!el) return;
   const d = el.dataset;
   if(d.share) shareResult(d.share);
   if(d.view) showView(d.view);
@@ -880,6 +943,8 @@ document.addEventListener("click", async e => {
   if(d.decline) chAction("decline_challenge", d.decline, "Challenge declined");
   if(d.cancel) chAction("cancel_challenge", d.cancel, "Challenge cancelled");
   if(d.ptab){ peopleTab = d.ptab; renderPeople(); }
+  if(d.lbtab){ lbTab = d.lbtab; loadBoard(); }
+  if(d.lbper){ lbPer = d.lbper; loadBoard(); }
   if(d.played){ if(await saveResult({ game:d.played, label:"Played", score:null })) toast(`${G(d.played).name} saved`); }
   if(d.play){ local.set("mc-pending", { game:d.play, at:Date.now() }); setTimeout(render, 300); }
   if(d.remove){ const [g, day] = d.remove.split("|"); removeResult(g, day); }
@@ -895,6 +960,7 @@ document.addEventListener("click", async e => {
     case "backplayed": { const g = local.get("mc-pending")?.game; if(g && await saveResult({ game:g, label:"Played", score:null })) toast(`${G(g).name} saved`); break; }
     case "rename": rename(); break;
     case "copylink": copyLink(); break;
+    case "wdone": local.set(WELCOME_KEY, 1); render(); break;
     case "autoon": enableAuto(); break;
     case "exton": connectExtension(); break;
     case "extoff": disconnectExtension(); break;

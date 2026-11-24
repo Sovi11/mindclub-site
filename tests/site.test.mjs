@@ -6,7 +6,7 @@ import { readFileSync } from "node:fs";
 import vm from "node:vm";
 
 const app = readFileSync(new URL("../app.js", import.meta.url), "utf8").replace(/\r\n/g, "\n");
-const fn = name => app.match(new RegExp(`function ${name}\\(\\)\\{[\\s\\S]*?\\n\\}\\n`))[0];
+const fn = name => app.match(new RegExp(`function ${name}\\([^)]*\\)\\{[\\s\\S]*?\\n\\}\\n`))[0];
 
 function board({ me = "me", follow = [], rows = [] }) {
   const ctx = vm.createContext({

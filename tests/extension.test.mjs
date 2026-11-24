@@ -99,8 +99,8 @@ test("an old dated puzzle is not sent", async () => {
 
 test("connect is only accepted from the Mindclub site", async () => {
   const w = worker();
-  const site = { id: "ext", tab: {}, url: "https://sovi11.github.io/mindclub-site/?x=1" };
-  const other = { id: "ext", tab: {}, url: "https://sovi11.github.io/other-repo/" };
+  const site = { id: "ext", tab: {}, url: "https://mindclub.in/?x=1" };
+  const other = { id: "ext", tab: {}, url: "https://mindclub.in.evil.example/" };
   assert.equal(await w.send({ type: "connect", token: TOKEN }, other), undefined);
   assert.equal(w.store.token, undefined);
   assert.equal((await w.send({ type: "connect", token: TOKEN }, site))?.ok, true);
