@@ -292,6 +292,10 @@ textarea:focus{border-color:var(--accent)}
 .field{width:100%;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);padding:11px 13px;font:15px Inter,sans-serif;outline:none;margin:18px 0 12px}
 .field:focus{border-color:var(--accent)}
 .authcard .btn{width:100%;justify-content:center;padding:12px}
+.gbtn{display:inline-flex;align-items:center;justify-content:center;gap:10px;background:var(--card);color:var(--ink);border:1px solid var(--line);font-weight:600}
+.gbtn:hover{border-color:var(--muted)}
+.gbtn .glogo{width:18px;height:18px;flex:none}
+.authcard .gbtn{margin-top:18px}
 .notice{margin-top:14px;padding:12px 14px;border-radius:10px;background:var(--soft);font-size:14px}
 .notice.err{background:var(--pink-soft);color:var(--pink)}
 .joinbadge{color:var(--muted);font-size:14px;margin-bottom:10px}

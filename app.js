@@ -87,6 +87,21 @@ $("keepForm").onsubmit = async e => {
   $("keepForm").hidden = true;
   $("guestHint").textContent = `We sent a link to ${email}. Click it in this browser and your guest account becomes a normal one, with everything kept.`;
 };
+// Google sign-in. A guest links Google to their account instead, so nothing they logged is lost
+// (needs "Allow manual linking" on in Supabase Auth).
+async function signInGoogle(keepGuest){
+  const redirectTo = location.origin + location.pathname;
+  const { error } = keepGuest
+    ? await sb.auth.linkIdentity({ provider: "google", options: { redirectTo } })
+    : await sb.auth.signInWithOAuth({ provider: "google", options: { redirectTo } });
+  if(!error) return;   // the browser is on its way to Google
+  const box = keepGuest ? $("keepErr") : $("authNotice");
+  box.hidden = false;
+  box.textContent = /already|exists|linked/i.test(error.message)
+    ? "That Google account already has a Mindclub account. Sign out and sign in with Google instead."
+    : /not enabled|unsupported|disabled/i.test(error.message) ? "Google sign-in isn't switched on yet. Use an email link for now."
+    : error.message;
+}
 // A profile link (?u=handle) is remembered across the email sign-in round trip.
 const urlFollow = new URLSearchParams(location.search).get("u");
 if(urlFollow){
@@ -125,6 +140,7 @@ if(hashErr){
   $("authNotice").hidden = false;
   $("authNotice").textContent = /expired|invalid/i.test(hashErr)
     ? "That sign-in link has expired or was already used. Enter your email to get a new one."
+    : /already|exists/i.test(hashErr) ? "That Google account already has a Mindclub account. Sign in with Google instead."
     : hashErr;
   history.replaceState(null, "", location.pathname);
 }
@@ -967,6 +983,8 @@ document.addEventListener("click", async e => {
     case "autooff": local.set("mc-auto", false); render(); toast("Auto-log is off"); break;
     case "authback": $("authSent").hidden = true; $("authAsk").hidden = false; $("authEmail").focus(); break;
     case "guest": signInGuest(); break;
+    case "google": signInGoogle(false); break;
+    case "googlekeep": signInGoogle(true); break;
     case "dropinvite": invited = null; inviteGame = null; render(); break;
     case "remind": openRemind(); break;
     case "closerem": $("remBg").classList.remove("open"); break;
