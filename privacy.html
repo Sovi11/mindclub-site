@@ -7,20 +7,20 @@
 <meta name="description" content="What Mindclub and the Mindclub browser extension collect, why, and who can see it.">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  :root{ --bg:#f4efe6; --card:#fffdf8; --ink:#1d1a16; --muted:#7a7064; --line:#e4dccd; --accent:#e2552d; }
+  :root{ --bg:#f5f8fb; --card:#ffffff; --ink:#0d1b2a; --muted:#64748b; --line:#e2e8f0; --accent:#0891b2; }
   @media (prefers-color-scheme: dark){
-    :root:not([data-theme="light"]){ --bg:#15130f; --card:#1f1c17; --ink:#f3ede2; --muted:#a1968a; --line:#332d24; --accent:#ff7a4d; }
+    :root:not([data-theme="light"]){ --bg:#071321; --card:#0c1c2f; --ink:#e6f0fa; --muted:#8197ad; --line:#17293e; --accent:#38d4f2; }
   }
-  :root[data-theme="dark"]{ --bg:#15130f; --card:#1f1c17; --ink:#f3ede2; --muted:#a1968a; --line:#332d24; --accent:#ff7a4d; }
+  :root[data-theme="dark"]{ --bg:#071321; --card:#0c1c2f; --ink:#e6f0fa; --muted:#8197ad; --line:#17293e; --accent:#38d4f2; }
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.65 Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
   main{max-width:720px;margin:0 auto;padding:48px 16px 80px}
-  .brand{font:700 26px Fraunces,Georgia,serif;letter-spacing:-.02em;text-decoration:none;color:var(--ink)}
+  .brand{font:700 26px 'Pixelify Sans',monospace;text-decoration:none;color:var(--ink);text-shadow:-1px 0 rgba(232,69,127,.45),1px 0 rgba(8,145,178,.45)}
   .brand span{color:var(--accent)}
-  h1{font:700 40px/1.1 Fraunces,Georgia,serif;letter-spacing:-.02em;margin:28px 0 6px}
-  h2{font:600 22px/1.25 Fraunces,Georgia,serif;margin:40px 0 10px}
+  h1{font:700 38px/1.1 Inter,sans-serif;letter-spacing:-.03em;margin:28px 0 6px}
+  h2{font:650 21px/1.25 Inter,sans-serif;letter-spacing:-.01em;margin:40px 0 10px}
   h3{font-size:16px;margin:22px 0 4px}
   p,li{color:var(--ink)}
   .muted{color:var(--muted)}
@@ -36,7 +36,7 @@
 <main>
   <a class="brand" href="./">mind<span>club</span></a>
   <h1>Privacy</h1>
-  <p class="muted">Covers the Mindclub website and the Mindclub browser extension. Last updated 19 November 2026.</p>
+  <p class="muted">Covers the Mindclub website and the Mindclub browser extension. Last updated 28 November 2026.</p>
 
   <div class="card"><p><b>Short version.</b> Mindclub keeps your puzzle results so you and the people you follow can compare them.
     The extension only reads text that a game page copies when you tap its Share button, and only keeps it if it's a game
@@ -45,8 +45,10 @@
   <h2>The website</h2>
   <h3>What we store</h3>
   <ul>
-    <li><b>Your account:</b> your email address if you sign in with email (guest accounts have none), plus the display name
-      and @handle you choose and which games you show on Today.</li>
+    <li><b>Your account:</b> your email address if you sign in with email or Google (guest accounts have none), plus the
+      display name and @handle you choose and which games you show on Today. If you sign in with Google, your display name
+      starts as the first name on your Google account; you can change it any time. We don't get your Google password,
+      contacts or anything else from Google.</li>
     <li><b>Your results:</b> for each puzzle you log, the game, the day, the result as shown (for example <code>3/6</code>),
       a score used for ranking, the puzzle number, and an optional star rating.</li>
     <li><b>Your connections:</b> who you follow, challenges you send or receive (with any note you add), and game
@@ -56,8 +58,12 @@
   <ul>
     <li>Your name and handle are visible to people you follow, people who follow you, people you've challenged, and
       anyone who searches for your handle.</li>
-    <li>People who follow you see your results. A score stays hidden from them until they've logged the same puzzle, so
-      nobody is spoiled.</li>
+    <li>Anyone with a Mindclub account can follow you; there's no approval step. People who follow you see your results,
+      but a score stays hidden from them until they've logged the same puzzle, so nobody is spoiled. You can remove a
+      follower on <b>People</b> at any time.</li>
+    <li>If you sign in with email or Google and log results, your name, handle and weekly points can appear on the
+      <b>Everyone</b> leaderboard, which every signed-in user can see. It shows totals only, never a score. Untick
+      <b>Show me on this board</b> on the Leaderboard page to hide yourself. Guest accounts are never listed.</li>
     <li>Your email address is never shown to anyone.</li>
   </ul>
   <h3>Your clipboard</h3>
@@ -70,7 +76,7 @@
   <h2>The browser extension</h2>
   <h3>What it reads</h3>
   <p>The extension runs only on the game sites it supports (NYT Games, LinkedIn Games, Krillion, Merriam-Webster's Quordle
-    and Octordle, Waffle, Worldle, Globle, Framed and Nerdle) and on the Mindclub site. On a game site it looks at text the
+    and Octordle, Waffle, Worldle, Globle, Framed, Nerdle and Hollow Chess) and on the Mindclub site. On a game site it looks at text the
     page copies to the clipboard or shares, which is what a Share button does. It checks that text inside your browser:
     if it isn't a game result, it is dropped right there and never stored or sent. It does not read your browsing history,
     other tabs, other sites, or anything you type.</p>
@@ -80,18 +86,19 @@
   <h3>What it keeps on your device</h3>
   <ul>
     <li>Your extension key. You get it when you click Connect on Mindclub. Mindclub stores only a scrambled (hashed)
-      copy. The key can only add a result to your own account for yesterday, today or tomorrow, and can never change or
+      copy. The key can only add a result to your own account for a puzzle from the last two days, and can never change or
       delete one.</li>
     <li>A short list of the last results it logged, shown in its popup.</li>
   </ul>
   <h3>Disconnecting</h3>
   <p>Disconnect in the extension's popup to forget the key in that browser. <b>Disconnect extension</b> on Mindclub also
-    cancels every key for your account. Removing the extension deletes what it kept.</p>
+    cancels every key for your account. Signing out of Mindclub disconnects the extension in that browser only. Removing the extension deletes what it kept.</p>
 
   <h2>Where it lives</h2>
   <p>Accounts and results are stored with <a href="https://supabase.com/privacy">Supabase</a> in Mumbai, India. The website
     is served by <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement">GitHub Pages</a>,
-    with its fonts from Google Fonts and one code library from jsDelivr. Those services may see your IP address when they
+    with its fonts from Google Fonts and one code library from jsDelivr. If you choose Continue with Google, Google
+    handles that sign-in under <a href="https://policies.google.com/privacy">its own privacy policy</a>. Those services may see your IP address when they
     serve files, as any website host does.</p>
 
   <h2>Keeping and deleting</h2>

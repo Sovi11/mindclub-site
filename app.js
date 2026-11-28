@@ -51,12 +51,12 @@ const iconHtml = (g, cls = "") => `<div class="gicon ${g.sym.length > 1 ? "two" 
 const nameOf = uid => uid === S.user?.id ? "You"
   : (S.people.find(m => m.user_id === uid)?.display_name || S.challenges.find(c => c.other_id === uid)?.other_name || "Someone");
 const cleanHandle = h => String(h || "").trim().toLowerCase().replace(/^@/, "");
-const autoHandle = h => /^player\d*$/.test(h || "");
+const autoHandle = h => /^player\d{4}$/.test(h || "");   // what make_handle hands out
 const profileUrl = () => `${location.origin}${location.pathname}?u=${S.profile?.handle || ""}`;
 
 /* ================= auth ================= */
 const isGuest = () => !!S.user?.is_anonymous;
-const isUnnamed = () => S.profile.display_name === (S.user.email || "").split("@")[0] || (isGuest() && S.profile.display_name === "Guest");
+const isUnnamed = () => S.profile.display_name === (S.user.email || "").split("@")[0] || S.profile.display_name === "Guest";
 
 // Guests are real (anonymous) accounts, so follows and challenges work the same.
 async function signInGuest(){
@@ -176,7 +176,7 @@ let loadSeq = 0;
 async function loadAll(){
   const since = dayKey(addDays(new Date(), -140));
   const [p, r, pe] = await Promise.all([
-    sb.from("profiles").select("id, display_name, handle, games").eq("id", S.user.id).single(),
+    sb.from("profiles").select("id, display_name, handle, games, on_global").eq("id", S.user.id).single(),
     sb.from("results").select("game, day, label, score, puzzle, stars, created_at").eq("user_id", S.user.id).gte("day", since),
     sb.rpc("my_people"),
   ]);
@@ -372,7 +372,7 @@ function weekBoard(rows = S.board){
   for(const r of rows){
     const s = st.get(r.user_id); if(!s) continue;
     s.played++;
-    if(r.revealed && r.score != null) (groups[r.game + "|" + r.day] ||= []).push(r);
+    if(r.revealed && r.score != null) (groups[r.game + "|" + (r.puzzle ?? r.day)] ||= []).push(r);
   }
   for(const rows of Object.values(groups)){
     if(rows.length < 2) continue;
@@ -441,7 +441,18 @@ function renderBoard(){
     return gap + boardRow(r.rank, r.user_id, r.display_name, r.handle, +(+r.points).toFixed(1), r.played, act);
   }).join("");
   box.innerHTML = rows.length ? boardHead("Points") + html : `<div class="nofriends">Nobody has played ${per} yet.</div>`;
-  if(isGuest()) box.innerHTML += `<div class="nofriends bnote">Guests aren't on this board. Add your email to join it.</div>`;
+  if(isGuest()) box.innerHTML += `<div class="nofriends bnote">Guests aren't on this board. Add your email or Google to join it.</div>`;
+  else box.innerHTML += `<label class="optout"><input type="checkbox" data-act="onglobal" ${S.profile.on_global === false ? "" : "checked"}> Show me on this board</label>`
+    + (S.profile.on_global === false ? `<div class="nofriends bnote">You're hidden from everyone else. Only you see your row.</div>` : "");
+}
+
+async function setOnGlobal(on){
+  const { error } = await sb.from("profiles").update({ on_global: on }).eq("id", S.user.id);
+  if(error) return toast("Couldn't save that: " + error.message);
+  S.profile.on_global = on;
+  lbData.global = {};
+  toast(on ? "You're on the global board" : "You're hidden from the global board");
+  loadBoard();
 }
 
 /* ================= challenges ================= */
@@ -758,7 +769,8 @@ $("suggestForm").onsubmit = async e => {
   const btn = e.submitter || $("suggestForm").querySelector("button"); btn.disabled = true;
   const { error } = await sb.rpc("suggest_game", { p_name: name, p_url: url || null });
   btn.disabled = false;
-  if(error) return err(/too many/.test(error.message) ? "That's a lot of suggestions for one day. Try again tomorrow." : error.message);
+  if(error) return err(/too many/.test(error.message) ? "That's a lot of suggestions for one day. Try again tomorrow."
+    : /add your email/.test(error.message) ? "Add your email or Google to your account to suggest games." : error.message);
   $("sugName").value = ""; $("sugUrl").value = "";
   await loadSuggestions();
   toast("Thanks. Your suggestion is in.");
@@ -976,6 +988,7 @@ document.addEventListener("click", async e => {
     case "backplayed": { const g = local.get("mc-pending")?.game; if(g && await saveResult({ game:g, label:"Played", score:null })) toast(`${G(g).name} saved`); break; }
     case "rename": rename(); break;
     case "copylink": copyLink(); break;
+    case "onglobal": setOnGlobal(el.checked); break;
     case "wdone": local.set(WELCOME_KEY, 1); render(); break;
     case "autoon": enableAuto(); break;
     case "exton": connectExtension(); break;
@@ -995,8 +1008,8 @@ document.addEventListener("click", async e => {
     case "toemail": e.preventDefault(); $("signin").scrollIntoView({ behavior: "smooth" }); setTimeout(() => $("authEmail").focus({ preventScroll: true }), 300); break;
     case "signout":
       if(isGuest() && !confirm("Sign out of this guest account? Guest accounts can't be signed back into, so your results and followers will be lost. To keep them, add your email first.")) break;
-      // Otherwise the extension would keep logging into this account after you sign out.
-      if(extState() === "connected") await disconnectExtension(true);
+      // Otherwise the extension in this browser would keep logging into this account. Other computers stay connected.
+      if(extState() === "connected") window.postMessage({ __mindclubSite: true, type: "disconnect" }, location.origin);
       await sb.auth.signOut();
       ["mc-pending","mc-clip-last","mc-follow"].forEach(k => local.set(k, null));
       invited = null; found = []; S.people = []; S.board = []; S.challenges = []; S.profile = null;
@@ -1170,7 +1183,7 @@ function renderAuto(){
 window.addEventListener("focus", () => setTimeout(autoCheck, 150));
 document.addEventListener("visibilitychange", () => { if(!document.hidden) setTimeout(autoCheck, 300); });
 checkClipPermission().then(() => { renderAuto(); autoCheck(); });
-setInterval(() => { if(!document.hidden && S.user) loadSocial(); }, 60000);
+setInterval(() => { if(!document.hidden && S.user) loadSocial(); }, 120000);
 
 sb.auth.getSession().then(({ data }) => { if(!data.session) showAuth(); });
 
